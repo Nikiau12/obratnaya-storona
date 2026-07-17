@@ -368,3 +368,30 @@ h1 {
     line-height: 1.34;
   }
 }
+
+@media (min-width: 640px) and (max-width: 1099px) {
+  .info-panel {
+    display: none;
+    top: 82vh;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(34rem, calc(100vw - 64px));
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .has-mobile-selection .info-panel {
+    display: block;
+  }
+
+  .info-title {
+    margin-bottom: 0.4rem;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+
+  .info-copy {
+    font-size: clamp(1rem, 1.8vw, 1.22rem);
+    line-height: 1.34;
+  }
+}
