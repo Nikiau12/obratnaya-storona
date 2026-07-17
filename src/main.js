@@ -136,6 +136,7 @@ const nodeButtons = nodes.map((node) => {
   button.addEventListener("focus", () => setActiveNode(node.id));
   button.addEventListener("click", () => {
     if (Date.now() - mobileGraph.lastGestureAt < 260) return;
+    if (isConstellationViewport()) document.body.classList.add("has-mobile-selection");
     setActiveNode(node.id);
   });
   nodeLayer.append(button);
@@ -731,7 +732,10 @@ function activateNearestMobileNode() {
     return distance < closest.distance ? { node, distance } : closest;
   }, { node: null, distance: Infinity });
 
-  if (nearest.node && nearest.node.id !== activeNodeId) setActiveNode(nearest.node.id);
+  if (nearest.node && nearest.node.id !== activeNodeId) {
+    document.body.classList.add("has-mobile-selection");
+    setActiveNode(nearest.node.id);
+  }
 }
 
 function getSafePixelRatio(width, height) {

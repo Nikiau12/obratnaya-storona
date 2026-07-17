@@ -341,3 +341,30 @@ h1 {
     display: none;
   }
 }
+
+@media (max-width: 639px) {
+  .info-panel {
+    display: none;
+    top: 74vh;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(22rem, calc(100vw - 40px));
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .has-mobile-selection .info-panel {
+    display: block;
+  }
+
+  .info-title {
+    margin-bottom: 0.35rem;
+    font-size: clamp(2rem, 9vw, 2.7rem);
+  }
+
+  .info-copy {
+    font-size: clamp(0.98rem, 4.3vw, 1.14rem);
+    line-height: 1.34;
+  }
+}
