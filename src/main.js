@@ -883,10 +883,11 @@ function getConstellationPosition(node, width, height) {
 
 function getConstellationMetrics(width, height) {
   const zone = getConstellationZone(width, height);
+  const isPhone = width < 640;
   return {
     centerX: width * 0.5 + mobileGraph.offsetX,
-    centerY: zone.focusY + mobileGraph.offsetY,
-    radius: zone.maxRadius * 0.78 * mobileGraph.scale,
+    centerY: zone.focusY + (isPhone ? height * 0.025 : 0) + mobileGraph.offsetY,
+    radius: zone.maxRadius * (isPhone ? 0.95 : 0.78) * mobileGraph.scale,
   };
 }
 
