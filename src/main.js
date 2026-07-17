@@ -79,17 +79,6 @@ const root = document.querySelector("#app");
 root.innerHTML = `
   <main class="shell">
     <canvas class="scene" aria-hidden="true"></canvas>
-    <div class="fallback-scene" aria-hidden="true">
-      <div class="fallback-room">
-        <span class="fallback-corner"></span>
-        <span class="fallback-hole"></span>
-        <span class="fallback-ring"></span>
-        <span class="fallback-object is-times"></span>
-        <span class="fallback-object is-vangogh"></span>
-        <span class="fallback-object is-rodin"></span>
-        <span class="fallback-object is-writer"></span>
-      </div>
-    </div>
     <section class="intro" aria-labelledby="page-title">
       <p class="kicker">независимое медиа</p>
       <h1 id="page-title">Обратная сторона</h1>
@@ -110,10 +99,6 @@ root.innerHTML = `
 `;
 
 const canvas = document.querySelector(".scene");
-const fallbackObjects = [...document.querySelectorAll(".fallback-object")];
-document.querySelector(".fallback-object.is-vangogh")?.style.setProperty("background-image", `url("${assetUrls.vangogh}")`);
-document.querySelector(".fallback-object.is-rodin")?.style.setProperty("background-image", `url("${assetUrls.rodin}")`);
-document.querySelector(".fallback-object.is-writer")?.style.setProperty("background-image", `url("${assetUrls.writer}")`);
 const nodeLayer = document.querySelector(".node-layer");
 const nodeLines = document.querySelector(".node-lines");
 const infoTitle = document.querySelector(".info-title");
@@ -135,7 +120,15 @@ const nodeButtons = nodes.map((node) => {
   return button;
 });
 
-const renderer = createRenderer();
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: false,
+  failIfMajorPerformanceCaveat: false,
+  powerPreference: "high-performance",
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0xfbfaf7, 1);
 
 const textureLoader = new THREE.TextureLoader();
 const imageAssets = {
@@ -193,75 +186,6 @@ window.addEventListener("pointermove", (event) => {
 });
 
 renderer.setAnimationLoop((time) => render(time * 0.001));
-
-function createRenderer() {
-  try {
-    const webglRenderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: false,
-      failIfMajorPerformanceCaveat: false,
-      powerPreference: "high-performance",
-    });
-    webglRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    webglRenderer.setClearColor(0xfbfaf7, 1);
-    return webglRenderer;
-  } catch (error) {
-    document.body.classList.add("webgl-fallback");
-    setActiveNode(activeNodeId);
-    layoutGraph();
-    startFallbackOrbit();
-    window.addEventListener("resize", layoutGraph);
-    console.warn("Three.js scene could not start. CSS fallback is active.", error);
-    return {
-      setPixelRatio() {},
-      setClearColor() {},
-      setSize() {},
-      setAnimationLoop() {},
-      render() {},
-    };
-  }
-}
-
-function startFallbackOrbit() {
-  const fallbackItems = fallbackObjects.map((element, index) => ({
-    element,
-    phase: index * 1.64,
-    speed: 0.045 + index * 0.006,
-    spin: index % 2 === 0 ? 1 : -1,
-  }));
-
-  const animateFallback = (time) => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isMobile = width < 640;
-    const isCompact = width < 1100;
-    const centerX = width * 0.5;
-    const centerY = height * (isMobile ? 0.615 : isCompact ? 0.675 : 0.69);
-    const radiusX = Math.min(width * (isMobile ? 0.39 : 0.36), isMobile ? 170 : 520);
-    const radiusY = height * (isMobile ? 0.074 : isCompact ? 0.098 : 0.09);
-
-    fallbackItems.forEach((item) => {
-      const progress = (time * 0.00008 * item.speed * 16 + item.phase * 0.11) % 1;
-      const fall = progress * progress * (3 - 2 * progress);
-      const spiral = Math.pow(1 - fall, 0.74);
-      const angle = item.phase + fall * Math.PI * 3.4;
-      const x = centerX + Math.cos(angle) * radiusX * (1.38 * spiral + 0.08);
-      const y = centerY - Math.sin(angle) * radiusY * (1.25 * spiral + 0.12) - (1 - fall) * height * 0.42;
-      const squeeze = Math.max(0.08, 1 - Math.max(0, fall - 0.68) * 2.6);
-      const scale = 0.82 + (1 - Math.abs(fall - 0.42)) * 0.22 - fall * 0.5;
-      const opacity = fall > 0.82 ? Math.max(0, 1 - (fall - 0.82) / 0.18) : Math.min(1, fall / 0.1);
-      const rotation = item.phase * 42 + fall * 620 * item.spin;
-
-      item.element.style.opacity = opacity.toFixed(3);
-      item.element.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale}, ${scale * squeeze})`;
-    });
-
-    requestAnimationFrame(animateFallback);
-  };
-
-  requestAnimationFrame(animateFallback);
-}
 
 function createRoom() {
   const group = new THREE.Group();
