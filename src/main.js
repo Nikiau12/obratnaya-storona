@@ -75,6 +75,15 @@ const edges = [
   ["showcase", "residents"],
 ];
 
+const constellationLayout = {
+  residents: { x: 0.5, y: 0.36 },
+  flicker: { x: 0.79, y: 0.44 },
+  signal: { x: 0.22, y: 0.5 },
+  word: { x: 0.52, y: 0.55 },
+  showcase: { x: 0.82, y: 0.56 },
+  archive: { x: 0.18, y: 0.61 },
+};
+
 const root = document.querySelector("#app");
 root.innerHTML = `
   <main class="shell">
@@ -105,6 +114,16 @@ const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pointer = new THREE.Vector2(0, 0);
+const mobileGraph = {
+  expanded: false,
+  offsetX: 0,
+  offsetY: 0,
+  scale: 1,
+  pointers: new Map(),
+  pinchDistance: 0,
+  pinchScale: 1,
+  lastGestureAt: 0,
+};
 let activeNodeId = "signal";
 
 const nodeButtons = nodes.map((node) => {
@@ -115,7 +134,13 @@ const nodeButtons = nodes.map((node) => {
   button.innerHTML = `<span class="node-dot"></span><span class="node-text">${node.title}</span>`;
   button.addEventListener("pointerenter", () => setActiveNode(node.id));
   button.addEventListener("focus", () => setActiveNode(node.id));
-  button.addEventListener("click", () => setActiveNode(node.id));
+  button.addEventListener("click", () => {
+    if (Date.now() - mobileGraph.lastGestureAt < 260) return;
+    if (isConstellationViewport() && !mobileGraph.expanded) {
+      expandMobileGraph();
+    }
+    setActiveNode(node.id);
+  });
   nodeLayer.append(button);
   return button;
 });
@@ -183,6 +208,10 @@ window.addEventListener("pointermove", (event) => {
   pointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
   pointer.y = -(event.clientY / window.innerHeight - 0.5) * 2;
 });
+window.addEventListener("pointerdown", beginMobileGraphGesture);
+window.addEventListener("pointermove", moveMobileGraphGesture);
+window.addEventListener("pointerup", endMobileGraphGesture);
+window.addEventListener("pointercancel", endMobileGraphGesture);
 
 renderer.setAnimationLoop((time) => render(time * 0.001));
 
@@ -614,6 +643,95 @@ function resize() {
   layoutGraph();
 }
 
+function isConstellationViewport() {
+  return window.innerWidth < 1100;
+}
+
+function isMobileGraphGesture(event) {
+  return isConstellationViewport()
+    && event.pointerType === "touch"
+    && event.clientY > window.innerHeight * 0.24
+    && event.clientY < window.innerHeight * 0.84;
+}
+
+function beginMobileGraphGesture(event) {
+  if (!isMobileGraphGesture(event)) return;
+
+  mobileGraph.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (mobileGraph.pointers.size === 2) {
+    const [first, second] = [...mobileGraph.pointers.values()];
+    mobileGraph.pinchDistance = Math.hypot(second.x - first.x, second.y - first.y);
+    mobileGraph.pinchScale = mobileGraph.scale;
+  }
+}
+
+function moveMobileGraphGesture(event) {
+  const previous = mobileGraph.pointers.get(event.pointerId);
+  if (!previous) return;
+
+  const next = { x: event.clientX, y: event.clientY };
+  mobileGraph.pointers.set(event.pointerId, next);
+
+  if (mobileGraph.pointers.size === 1) {
+    const deltaX = next.x - previous.x;
+    const deltaY = next.y - previous.y;
+    if (Math.hypot(deltaX, deltaY) < 1) return;
+
+    mobileGraph.offsetX = clampMobileGraphOffset(
+      mobileGraph.offsetX + deltaX,
+      window.innerWidth * (mobileGraph.expanded ? 0.36 : 0.24),
+    );
+    mobileGraph.offsetY = clampMobileGraphOffset(
+      mobileGraph.offsetY + deltaY,
+      window.innerHeight * (mobileGraph.expanded ? 0.28 : 0.18),
+    );
+  } else {
+    const [first, second] = [...mobileGraph.pointers.values()];
+    const distance = Math.hypot(second.x - first.x, second.y - first.y);
+    if (mobileGraph.pinchDistance) {
+      mobileGraph.scale = THREE.MathUtils.clamp(
+        mobileGraph.pinchScale * (distance / mobileGraph.pinchDistance),
+        0.82,
+        1.42,
+      );
+    }
+  }
+
+  mobileGraph.lastGestureAt = Date.now();
+  layoutGraph();
+  if (mobileGraph.expanded) activateNearestMobileNode();
+}
+
+function endMobileGraphGesture(event) {
+  if (!mobileGraph.pointers.delete(event.pointerId)) return;
+  if (mobileGraph.pointers.size < 2) mobileGraph.pinchDistance = 0;
+}
+
+function clampMobileGraphOffset(value, limit) {
+  return THREE.MathUtils.clamp(value, -limit, limit);
+}
+
+function expandMobileGraph() {
+  mobileGraph.expanded = true;
+  mobileGraph.offsetX = 0;
+  mobileGraph.offsetY = 0;
+  mobileGraph.scale = 1.45;
+  document.body.classList.add("mobile-graph-expanded");
+  layoutGraph();
+}
+
+function activateNearestMobileNode() {
+  const focusX = window.innerWidth * 0.5;
+  const focusY = window.innerHeight * 0.5;
+  const nearest = nodes.reduce((closest, node) => {
+    const position = getGraphPosition(node, window.innerWidth, window.innerHeight);
+    const distance = Math.hypot(position.x - focusX, position.y - focusY);
+    return distance < closest.distance ? { node, distance } : closest;
+  }, { node: null, distance: Infinity });
+
+  if (nearest.node && nearest.node.id !== activeNodeId) setActiveNode(nearest.node.id);
+}
+
 function getSafePixelRatio(width, height) {
   const pixelBudget = width < 720 ? 2_200_000 : 5_000_000;
   const deviceRatio = window.devicePixelRatio || 1;
@@ -673,30 +791,41 @@ function layoutGraph() {
 function getGraphPosition(node, width, height) {
   const isMobile = width < 640;
   const isCompact = width < 1100;
+
+  if (isCompact) {
+    return getConstellationPosition(node, width, height);
+  }
+
   const centerX = width * 0.5;
-  const centerY = height * (isMobile ? 0.615 : isCompact ? 0.675 : 0.69);
-  const radiusX = Math.min(width * (isMobile ? 0.39 : 0.36), isMobile ? 170 : 520);
-  const radiusY = height * (isMobile ? 0.074 : isCompact ? 0.098 : 0.09);
+  const centerY = height * 0.69;
+  const radiusX = Math.min(width * 0.36, 520);
+  const radiusY = height * 0.09;
 
   if (node.apex) {
     return {
       x: centerX,
-      y: Math.max(height * (isMobile ? 0.31 : 0.2), centerY - height * (isMobile ? 0.31 : 0.5)),
+      y: Math.max(height * 0.2, centerY - height * 0.5),
     };
   }
 
-  const compactAngles = {
-    archive: 148,
-    signal: 115,
-    word: 90,
-    flicker: 65,
-    showcase: 32,
-  };
-  const ringAngle = isCompact ? compactAngles[node.id] || node.ringAngle : node.ringAngle;
-  const angle = THREE.MathUtils.degToRad(ringAngle);
+  const angle = THREE.MathUtils.degToRad(node.ringAngle);
   return {
     x: centerX + Math.cos(angle) * radiusX,
     y: centerY - Math.sin(angle) * radiusY,
+  };
+}
+
+function getConstellationPosition(node, width, height) {
+  const anchor = constellationLayout[node.id];
+  const focusX = width * 0.5;
+  const focusY = height * (mobileGraph.expanded ? 0.5 : 0.52);
+  const baseX = anchor.x * width;
+  const baseY = anchor.y * height;
+  const scale = mobileGraph.expanded ? mobileGraph.scale : 1;
+
+  return {
+    x: focusX + (baseX - focusX) * scale + mobileGraph.offsetX,
+    y: focusY + (baseY - focusY) * scale + mobileGraph.offsetY,
   };
 }
 

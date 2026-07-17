@@ -280,6 +280,36 @@ h1 {
   }
 }
 
+@media (max-width: 1099px) {
+  .node-layer {
+    touch-action: none;
+  }
+
+  .node-lines line {
+    stroke-width: 1.15;
+  }
+
+  .node-lines line.is-lit {
+    stroke-width: 1.75;
+  }
+
+  .mobile-graph-expanded .intro,
+  .mobile-graph-expanded .footer {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease-out;
+  }
+
+  .mobile-graph-expanded .info-panel {
+    display: block;
+    right: 20px;
+    bottom: 28px;
+    left: 20px;
+    width: auto;
+    z-index: 3;
+  }
+}
+
 @media (max-width: 560px) {
   h1 {
     font-size: clamp(2.45rem, 13vw, 3.65rem);
