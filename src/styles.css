@@ -115,7 +115,8 @@ h1 {
 .node-lines line {
   stroke: rgba(17, 17, 17, 0.14);
   stroke-width: 1;
-  transition: stroke 130ms ease-out, stroke-width 130ms ease-out;
+  opacity: 1;
+  transition: stroke 130ms ease-out, stroke-width 130ms ease-out, opacity 130ms ease-out;
 }
 
 .node-lines line.is-lit {
@@ -297,11 +298,17 @@ h1 {
 
   .node-lines line {
     stroke-width: 1.15;
+    /* Connections stay faint by default and bloom in one-by-one (staggered
+       via JS transition-delay) as you land on a point, instead of all
+       showing at once. */
+    opacity: 0.1;
+    transition: stroke 200ms ease-out, stroke-width 200ms ease-out, opacity 320ms ease-out;
   }
 
   .node-lines line.is-lit {
-    stroke: rgba(17, 17, 17, 0.24);
+    stroke: rgba(17, 17, 17, 0.3);
     stroke-width: 1.25;
+    opacity: 1;
   }
 
   .constellation-ring {

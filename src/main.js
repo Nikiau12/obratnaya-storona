@@ -75,13 +75,16 @@ const edges = [
   ["showcase", "residents"],
 ];
 
-const constellationAngles = {
-  residents: -90,
-  flicker: -30,
-  showcase: 30,
-  word: 90,
-  archive: 150,
-  signal: 210,
+// Hand-tuned angles/radii (not evenly spaced, not equal radius) so the mobile
+// picker reads as a loose, organic cluster inside an overall circular silhouette
+// -- like a small knowledge-graph -- instead of a perfectly even ring.
+const constellationLayout = {
+  residents: { angle: -96, radius: 0.56 },
+  flicker: { angle: -14, radius: 0.98 },
+  showcase: { angle: 58, radius: 0.72 },
+  word: { angle: 124, radius: 1 },
+  archive: { angle: 174, radius: 0.8 },
+  signal: { angle: 238, radius: 0.9 },
 };
 
 const root = document.querySelector("#app");
@@ -650,10 +653,10 @@ function isConstellationViewport() {
 }
 
 function isMobileGraphGesture(event) {
-  return isConstellationViewport()
-    && event.pointerType === "touch"
-    && event.clientY > window.innerHeight * 0.24
-    && event.clientY < window.innerHeight * 0.84;
+  if (!isConstellationViewport() || event.pointerType !== "touch") return false;
+  const zone = getConstellationZone(window.innerWidth, window.innerHeight);
+  const padding = zone.maxRadius * 0.4;
+  return event.clientY > zone.safeTop - padding && event.clientY < zone.safeBottom + padding;
 }
 
 function beginMobileGraphGesture(event) {
@@ -679,14 +682,12 @@ function moveMobileGraphGesture(event) {
     const deltaY = next.y - previous.y;
     if (Math.hypot(deltaX, deltaY) < 1) return;
 
-    mobileGraph.offsetX = clampMobileGraphOffset(
-      mobileGraph.offsetX + deltaX,
-      window.innerWidth * (mobileGraph.expanded ? 0.36 : 0.24),
-    );
-    mobileGraph.offsetY = clampMobileGraphOffset(
-      mobileGraph.offsetY + deltaY,
-      window.innerHeight * (mobileGraph.expanded ? 0.28 : 0.18),
-    );
+    const zone = getConstellationZone(window.innerWidth, window.innerHeight);
+    const panLimit = zone.maxRadius * (mobileGraph.expanded ? 0.6 : 0.42);
+    mobileGraph.offsetX = clampMobileGraphOffset(mobileGraph.offsetX + deltaX, panLimit);
+    // Keep the vertical pan tighter than horizontal so a drag can never pull
+    // the cluster up into the title or down into the black hole.
+    mobileGraph.offsetY = clampMobileGraphOffset(mobileGraph.offsetY + deltaY, panLimit * 0.55);
   } else {
     const [first, second] = [...mobileGraph.pointers.values()];
     const distance = Math.hypot(second.x - first.x, second.y - first.y);
@@ -723,8 +724,9 @@ function expandMobileGraph() {
 }
 
 function activateNearestMobileNode() {
+  const zone = getConstellationZone(window.innerWidth, window.innerHeight);
   const focusX = window.innerWidth * 0.5;
-  const focusY = window.innerHeight * 0.5;
+  const focusY = zone.focusY;
   const nearest = nodes.reduce((closest, node) => {
     const position = getGraphPosition(node, window.innerWidth, window.innerHeight);
     const distance = Math.hypot(position.x - focusX, position.y - focusY);
@@ -768,9 +770,12 @@ function layoutGraph() {
   });
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  const constellationRing = isConstellationViewport()
-    ? createConstellationRing(graphPositions)
-    : null;
+  const compact = isConstellationViewport();
+  const constellationRing = compact ? createConstellationRing(graphPositions) : null;
+  // On mobile/tablet, only the connections touching the active node stay lit,
+  // and they fade in one after another instead of all at once -- the web of
+  // connections "grows" as you move your finger from point to point.
+  const activeEdgeOrder = edges.filter(([from, to]) => from === activeNodeId || to === activeNodeId);
   nodeLines.replaceChildren(
     ...(constellationRing ? [constellationRing] : []),
     ...edges.map(([from, to]) => {
@@ -789,6 +794,12 @@ function layoutGraph() {
       line.setAttribute("x2", x2);
       line.setAttribute("y2", y2);
       line.setAttribute("class", isLit ? "is-lit" : "");
+      if (compact && isLit) {
+        const staggerIndex = activeEdgeOrder.findIndex(([f, t]) => f === from && t === to);
+        line.style.transitionDelay = `${Math.max(0, staggerIndex) * 70}ms`;
+      } else {
+        line.style.transitionDelay = "0ms";
+      }
       return line;
     }),
   );
@@ -837,23 +848,35 @@ function getGraphPosition(node, width, height) {
   };
 }
 
+// Single source of truth for "the strip between the title and the black hole"
+// so the picker -- collapsed or expanded, phone or tablet -- always stays
+// inside it. Recomputed every layout pass from the live DOM, so it tracks
+// the real height of the intro text at any viewport size.
+function getConstellationZone(width, height) {
+  const safeTop = intro.getBoundingClientRect().bottom + Math.max(16, height * 0.022);
+  const safeBottom = height * (width < 640 ? 0.58 : 0.62) - 26;
+  const zoneHeight = Math.max(60, safeBottom - safeTop);
+  const focusY = safeTop + zoneHeight / 2;
+  const maxRadius = Math.max(32, Math.min(zoneHeight / 2, width * 0.42));
+  return { safeTop, safeBottom, zoneHeight, focusY, maxRadius };
+}
+
 function getConstellationPosition(node, width, height) {
+  const zone = getConstellationZone(width, height);
   const focusX = width * 0.5;
-  const minDimension = Math.min(width, height);
   const expanded = mobileGraph.expanded;
-  const safeTop = intro.getBoundingClientRect().bottom + Math.max(18, height * 0.025);
-  const safeBottom = height * (width < 640 ? 0.6 : 0.64) - 28;
-  const availableRadius = Math.max(34, (safeBottom - safeTop) / 2);
-  const focusY = expanded ? height * 0.47 : (safeTop + safeBottom) / 2;
-  const baseRadius = expanded
-    ? minDimension * 0.36
-    : Math.min(width * 0.18, height * 0.09, availableRadius);
-  const radius = baseRadius * (mobileGraph.expanded ? mobileGraph.scale : 1);
-  const angle = THREE.MathUtils.degToRad(constellationAngles[node.id]);
+  // Collapsed = small preview cluster; expanded = grows to fill the same
+  // safe zone (never past it), so it can't creep onto the title or the hole
+  // on any device.
+  const radiusFactor = expanded ? 0.92 : 0.48;
+  const baseRadius = zone.maxRadius * radiusFactor * mobileGraph.scale;
+  const layout = constellationLayout[node.id] ?? { angle: 0, radius: 1 };
+  const radius = baseRadius * layout.radius;
+  const angle = THREE.MathUtils.degToRad(layout.angle);
 
   return {
     x: focusX + Math.cos(angle) * radius + mobileGraph.offsetX,
-    y: focusY + Math.sin(angle) * radius + mobileGraph.offsetY,
+    y: zone.focusY + Math.sin(angle) * radius + mobileGraph.offsetY,
   };
 }
 
