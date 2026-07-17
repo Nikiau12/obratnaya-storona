@@ -108,6 +108,7 @@ root.innerHTML = `
 `;
 
 const canvas = document.querySelector(".scene");
+const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const nodeLines = document.querySelector(".node-lines");
 const infoTitle = document.querySelector(".info-title");
@@ -148,11 +149,12 @@ const nodeButtons = nodes.map((node) => {
 const renderer = new THREE.WebGLRenderer({
   canvas,
   alpha: false,
-  antialias: false,
+  antialias: true,
   failIfMajorPerformanceCaveat: false,
   powerPreference: "default",
 });
 renderer.setClearColor(0xfbfaf7, 1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const textureLoader = new THREE.TextureLoader();
 const imageAssets = {
@@ -265,7 +267,7 @@ function createFloorHole() {
   const group = new THREE.Group();
 
   const outerShadow = new THREE.Mesh(
-    new THREE.RingGeometry(1.22, 2.08, 160),
+    new THREE.RingGeometry(1.22, 2.08, 320),
     new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, side: THREE.DoubleSide }),
   );
   outerShadow.rotation.x = -Math.PI / 2;
@@ -274,7 +276,7 @@ function createFloorHole() {
   group.add(outerShadow);
 
   const rim = new THREE.Mesh(
-    new THREE.RingGeometry(1.28, 1.44, 160),
+    new THREE.RingGeometry(1.28, 1.44, 320),
     new THREE.MeshBasicMaterial({ color: 0x3f3b35, transparent: true, opacity: 0.26, side: THREE.DoubleSide }),
   );
   rim.rotation.x = -Math.PI / 2;
@@ -285,7 +287,7 @@ function createFloorHole() {
   group.add(rim);
 
   const disc = new THREE.Mesh(
-    new THREE.CircleGeometry(1.32, 192),
+    new THREE.CircleGeometry(1.32, 384),
     new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide }),
   );
   disc.rotation.x = -Math.PI / 2;
@@ -733,10 +735,10 @@ function activateNearestMobileNode() {
 }
 
 function getSafePixelRatio(width, height) {
-  const pixelBudget = width < 720 ? 2_200_000 : 5_000_000;
+  const pixelBudget = width < 720 ? 6_000_000 : 14_000_000;
   const deviceRatio = window.devicePixelRatio || 1;
   const ratioForBudget = Math.sqrt(pixelBudget / (width * height));
-  return Math.max(1, Math.min(deviceRatio, 1.5, ratioForBudget));
+  return Math.max(1, Math.min(deviceRatio, 2, ratioForBudget));
 }
 
 function setActiveNode(id) {
@@ -837,11 +839,15 @@ function getGraphPosition(node, width, height) {
 
 function getConstellationPosition(node, width, height) {
   const focusX = width * 0.5;
-  const focusY = height * (mobileGraph.expanded ? 0.47 : 0.51);
   const minDimension = Math.min(width, height);
-  const baseRadius = mobileGraph.expanded
+  const expanded = mobileGraph.expanded;
+  const safeTop = intro.getBoundingClientRect().bottom + Math.max(18, height * 0.025);
+  const safeBottom = height * (width < 640 ? 0.6 : 0.64) - 28;
+  const availableRadius = Math.max(34, (safeBottom - safeTop) / 2);
+  const focusY = expanded ? height * 0.47 : (safeTop + safeBottom) / 2;
+  const baseRadius = expanded
     ? minDimension * 0.36
-    : Math.min(width * 0.2, height * 0.095);
+    : Math.min(width * 0.18, height * 0.09, availableRadius);
   const radius = baseRadius * (mobileGraph.expanded ? mobileGraph.scale : 1);
   const angle = THREE.MathUtils.degToRad(constellationAngles[node.id]);
 
