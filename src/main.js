@@ -75,13 +75,13 @@ const edges = [
   ["showcase", "residents"],
 ];
 
-const constellationLayout = {
-  residents: { x: 0.5, y: 0.36 },
-  flicker: { x: 0.79, y: 0.44 },
-  signal: { x: 0.22, y: 0.5 },
-  word: { x: 0.52, y: 0.55 },
-  showcase: { x: 0.82, y: 0.56 },
-  archive: { x: 0.18, y: 0.61 },
+const constellationAngles = {
+  residents: -90,
+  flicker: -30,
+  showcase: 30,
+  word: 90,
+  archive: 150,
+  signal: 210,
 };
 
 const root = document.querySelector("#app");
@@ -691,8 +691,8 @@ function moveMobileGraphGesture(event) {
     if (mobileGraph.pinchDistance) {
       mobileGraph.scale = THREE.MathUtils.clamp(
         mobileGraph.pinchScale * (distance / mobileGraph.pinchDistance),
-        0.82,
-        1.42,
+        0.8,
+        1.28,
       );
     }
   }
@@ -715,7 +715,7 @@ function expandMobileGraph() {
   mobileGraph.expanded = true;
   mobileGraph.offsetX = 0;
   mobileGraph.offsetY = 0;
-  mobileGraph.scale = 1.45;
+  mobileGraph.scale = 1;
   document.body.classList.add("mobile-graph-expanded");
   layoutGraph();
 }
@@ -766,7 +766,11 @@ function layoutGraph() {
   });
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  const constellationRing = isConstellationViewport()
+    ? createConstellationRing(graphPositions)
+    : null;
   nodeLines.replaceChildren(
+    ...(constellationRing ? [constellationRing] : []),
     ...edges.map(([from, to]) => {
       const fromNode = nodes.find((node) => node.id === from);
       const toNode = nodes.find((node) => node.id === to);
@@ -786,6 +790,22 @@ function layoutGraph() {
       return line;
     }),
   );
+}
+
+function createConstellationRing(positions) {
+  const orderedPositions = nodes.map((node) => positions.get(node.id));
+  const centerX = orderedPositions.reduce((sum, position) => sum + position.x, 0) / orderedPositions.length + 6;
+  const centerY = orderedPositions.reduce((sum, position) => sum + position.y, 0) / orderedPositions.length + 6;
+  const radius = orderedPositions.reduce(
+    (sum, position) => sum + Math.hypot(position.x + 6 - centerX, position.y + 6 - centerY),
+    0,
+  ) / orderedPositions.length;
+  const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  ring.setAttribute("class", "constellation-ring");
+  ring.setAttribute("cx", centerX);
+  ring.setAttribute("cy", centerY);
+  ring.setAttribute("r", radius);
+  return ring;
 }
 
 function getGraphPosition(node, width, height) {
@@ -816,16 +836,18 @@ function getGraphPosition(node, width, height) {
 }
 
 function getConstellationPosition(node, width, height) {
-  const anchor = constellationLayout[node.id];
   const focusX = width * 0.5;
-  const focusY = height * (mobileGraph.expanded ? 0.5 : 0.52);
-  const baseX = anchor.x * width;
-  const baseY = anchor.y * height;
-  const scale = mobileGraph.expanded ? mobileGraph.scale : 1;
+  const focusY = height * (mobileGraph.expanded ? 0.47 : 0.51);
+  const minDimension = Math.min(width, height);
+  const baseRadius = mobileGraph.expanded
+    ? minDimension * 0.36
+    : Math.min(width * 0.2, height * 0.095);
+  const radius = baseRadius * (mobileGraph.expanded ? mobileGraph.scale : 1);
+  const angle = THREE.MathUtils.degToRad(constellationAngles[node.id]);
 
   return {
-    x: focusX + (baseX - focusX) * scale + mobileGraph.offsetX,
-    y: focusY + (baseY - focusY) * scale + mobileGraph.offsetY,
+    x: focusX + Math.cos(angle) * radius + mobileGraph.offsetX,
+    y: focusY + Math.sin(angle) * radius + mobileGraph.offsetY,
   };
 }
 
