@@ -104,9 +104,24 @@ h1 {
   pointer-events: none;
 }
 
+.constellation-lens {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  background: rgba(251, 250, 247, 0.14);
+  box-shadow: inset 0 0 26px rgba(255, 255, 255, 0.22), 0 4px 24px rgba(53, 48, 39, 0.05);
+  opacity: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(3px) brightness(1.03);
+  backdrop-filter: blur(3px) brightness(1.03);
+  transition: width 180ms ease-out, height 180ms ease-out, transform 180ms ease-out;
+}
+
 .node-lines {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   overflow: visible;
@@ -132,6 +147,7 @@ h1 {
 
 .node-label {
   position: absolute;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -289,11 +305,17 @@ h1 {
 
 @media (max-width: 1099px) {
   .node-layer {
+    pointer-events: auto;
     touch-action: none;
   }
 
   .scene {
+    pointer-events: none;
     transition: opacity 220ms ease-out;
+  }
+
+  .constellation-lens {
+    opacity: 1;
   }
 
   .node-lines line {
@@ -314,6 +336,14 @@ h1 {
   .constellation-ring {
     stroke: rgba(17, 17, 17, 0.48);
     stroke-width: 1.5;
+  }
+
+  .node-dot {
+    box-shadow: 0 0 0 2px rgba(251, 250, 247, 0.8), 0 1px 7px rgba(17, 17, 17, 0.22);
+  }
+
+  .node-text {
+    text-shadow: 0 0 2px rgba(251, 250, 247, 1), 0 0 8px rgba(251, 250, 247, 0.98);
   }
 
 }

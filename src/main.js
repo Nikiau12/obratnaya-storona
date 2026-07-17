@@ -75,16 +75,13 @@ const edges = [
   ["showcase", "residents"],
 ];
 
-// Hand-tuned angles/radii (not evenly spaced, not equal radius) so the mobile
-// picker reads as a loose, organic cluster inside an overall circular silhouette
-// -- like a small knowledge-graph -- instead of a perfectly even ring.
 const constellationLayout = {
-  residents: { angle: -96, radius: 0.56 },
-  flicker: { angle: -14, radius: 0.98 },
-  showcase: { angle: 58, radius: 0.72 },
-  word: { angle: 124, radius: 1 },
-  archive: { angle: 174, radius: 0.8 },
-  signal: { angle: 238, radius: 0.9 },
+  residents: { angle: -90, radius: 1 },
+  flicker: { angle: -30, radius: 1 },
+  showcase: { angle: 30, radius: 1 },
+  word: { angle: 90, radius: 1 },
+  archive: { angle: 150, radius: 1 },
+  signal: { angle: 210, radius: 1 },
 };
 
 const root = document.querySelector("#app");
@@ -114,6 +111,9 @@ const canvas = document.querySelector(".scene");
 const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const nodeLines = document.querySelector(".node-lines");
+const constellationLens = document.createElement("div");
+constellationLens.className = "constellation-lens";
+nodeLayer.insertBefore(constellationLens, nodeLines);
 const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -206,6 +206,7 @@ setActiveNode(activeNodeId);
 resize();
 window.addEventListener("resize", resize);
 window.addEventListener("pointermove", (event) => {
+  if (isConstellationViewport()) return;
   pointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
   pointer.y = -(event.clientY / window.innerHeight - 0.5) * 2;
 });
@@ -771,7 +772,9 @@ function layoutGraph() {
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
   const compact = isConstellationViewport();
-  const constellationRing = compact ? createConstellationRing(graphPositions) : null;
+  const constellationMetrics = compact ? getConstellationMetrics(width, height) : null;
+  updateConstellationLens(constellationMetrics);
+  const constellationRing = constellationMetrics ? createConstellationRing(constellationMetrics) : null;
   // On mobile/tablet, only the connections touching the active node stay lit,
   // and they fade in one after another instead of all at once -- the web of
   // connections "grows" as you move your finger from point to point.
@@ -805,14 +808,20 @@ function layoutGraph() {
   );
 }
 
-function createConstellationRing(positions) {
-  const orderedPositions = nodes.map((node) => positions.get(node.id));
-  const centerX = orderedPositions.reduce((sum, position) => sum + position.x, 0) / orderedPositions.length + 6;
-  const centerY = orderedPositions.reduce((sum, position) => sum + position.y, 0) / orderedPositions.length + 6;
-  const radius = orderedPositions.reduce(
-    (sum, position) => sum + Math.hypot(position.x + 6 - centerX, position.y + 6 - centerY),
-    0,
-  ) / orderedPositions.length;
+function updateConstellationLens(metrics) {
+  if (!metrics) {
+    constellationLens.style.width = "0";
+    constellationLens.style.height = "0";
+    return;
+  }
+
+  const lensRadius = metrics.radius + 28;
+  constellationLens.style.width = `${lensRadius * 2}px`;
+  constellationLens.style.height = `${lensRadius * 2}px`;
+  constellationLens.style.transform = `translate(${metrics.centerX - lensRadius}px, ${metrics.centerY - lensRadius}px)`;
+}
+
+function createConstellationRing({ centerX, centerY, radius }) {
   const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   ring.setAttribute("class", "constellation-ring");
   ring.setAttribute("cx", centerX);
@@ -861,19 +870,23 @@ function getConstellationZone(width, height) {
 }
 
 function getConstellationPosition(node, width, height) {
-  const zone = getConstellationZone(width, height);
-  const focusX = width * 0.5;
-  // A two-finger pinch grows this preview circle directly over the 3D scene.
-  // At scale 1 it always returns to the safe strip above the hole.
-  const radiusFactor = 0.48;
-  const baseRadius = zone.maxRadius * radiusFactor * mobileGraph.scale;
+  const metrics = getConstellationMetrics(width, height);
   const layout = constellationLayout[node.id] ?? { angle: 0, radius: 1 };
-  const radius = baseRadius * layout.radius;
+  const radius = metrics.radius * layout.radius;
   const angle = THREE.MathUtils.degToRad(layout.angle);
 
   return {
-    x: focusX + Math.cos(angle) * radius + mobileGraph.offsetX,
-    y: zone.focusY + Math.sin(angle) * radius + mobileGraph.offsetY,
+    x: metrics.centerX + Math.cos(angle) * radius,
+    y: metrics.centerY + Math.sin(angle) * radius,
+  };
+}
+
+function getConstellationMetrics(width, height) {
+  const zone = getConstellationZone(width, height);
+  return {
+    centerX: width * 0.5 + mobileGraph.offsetX,
+    centerY: zone.focusY + mobileGraph.offsetY,
+    radius: zone.maxRadius * 0.78 * mobileGraph.scale,
   };
 }
 
