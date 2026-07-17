@@ -119,7 +119,6 @@ const infoCopy = document.querySelector(".info-copy");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pointer = new THREE.Vector2(0, 0);
 const mobileGraph = {
-  expanded: false,
   offsetX: 0,
   offsetY: 0,
   scale: 1,
@@ -140,9 +139,6 @@ const nodeButtons = nodes.map((node) => {
   button.addEventListener("focus", () => setActiveNode(node.id));
   button.addEventListener("click", () => {
     if (Date.now() - mobileGraph.lastGestureAt < 260) return;
-    if (isConstellationViewport() && !mobileGraph.expanded) {
-      expandMobileGraph();
-    }
     setActiveNode(node.id);
   });
   nodeLayer.append(button);
@@ -678,12 +674,14 @@ function moveMobileGraphGesture(event) {
   mobileGraph.pointers.set(event.pointerId, next);
 
   if (mobileGraph.pointers.size === 1) {
+    if (mobileGraph.scale <= 1) return;
+
     const deltaX = next.x - previous.x;
     const deltaY = next.y - previous.y;
     if (Math.hypot(deltaX, deltaY) < 1) return;
 
     const zone = getConstellationZone(window.innerWidth, window.innerHeight);
-    const panLimit = zone.maxRadius * (mobileGraph.expanded ? 0.6 : 0.42);
+    const panLimit = zone.maxRadius * (mobileGraph.scale - 0.8);
     mobileGraph.offsetX = clampMobileGraphOffset(mobileGraph.offsetX + deltaX, panLimit);
     // Keep the vertical pan tighter than horizontal so a drag can never pull
     // the cluster up into the title or down into the black hole.
@@ -694,33 +692,35 @@ function moveMobileGraphGesture(event) {
     if (mobileGraph.pinchDistance) {
       mobileGraph.scale = THREE.MathUtils.clamp(
         mobileGraph.pinchScale * (distance / mobileGraph.pinchDistance),
-        0.8,
-        1.28,
+        1,
+        2.4,
       );
+      if (mobileGraph.scale < 1.04) {
+        mobileGraph.scale = 1;
+        mobileGraph.offsetX = 0;
+        mobileGraph.offsetY = 0;
+      }
     }
   }
 
   mobileGraph.lastGestureAt = Date.now();
   layoutGraph();
-  if (mobileGraph.expanded) activateNearestMobileNode();
+  if (mobileGraph.scale > 1) activateNearestMobileNode();
 }
 
 function endMobileGraphGesture(event) {
   if (!mobileGraph.pointers.delete(event.pointerId)) return;
   if (mobileGraph.pointers.size < 2) mobileGraph.pinchDistance = 0;
+  if (!mobileGraph.pointers.size && mobileGraph.scale < 1.04) {
+    mobileGraph.scale = 1;
+    mobileGraph.offsetX = 0;
+    mobileGraph.offsetY = 0;
+    layoutGraph();
+  }
 }
 
 function clampMobileGraphOffset(value, limit) {
   return THREE.MathUtils.clamp(value, -limit, limit);
-}
-
-function expandMobileGraph() {
-  mobileGraph.expanded = true;
-  mobileGraph.offsetX = 0;
-  mobileGraph.offsetY = 0;
-  mobileGraph.scale = 1;
-  document.body.classList.add("mobile-graph-expanded");
-  layoutGraph();
 }
 
 function activateNearestMobileNode() {
@@ -848,10 +848,9 @@ function getGraphPosition(node, width, height) {
   };
 }
 
-// Single source of truth for "the strip between the title and the black hole"
-// so the picker -- collapsed or expanded, phone or tablet -- always stays
-// inside it. Recomputed every layout pass from the live DOM, so it tracks
-// the real height of the intro text at any viewport size.
+// Single source of truth for the compact position between the title and hole.
+// Recomputed every layout pass from the live DOM, so it tracks the real height
+// of the intro text at any viewport size.
 function getConstellationZone(width, height) {
   const safeTop = intro.getBoundingClientRect().bottom + Math.max(16, height * 0.022);
   const safeBottom = height * (width < 640 ? 0.58 : 0.62) - 26;
@@ -864,11 +863,9 @@ function getConstellationZone(width, height) {
 function getConstellationPosition(node, width, height) {
   const zone = getConstellationZone(width, height);
   const focusX = width * 0.5;
-  const expanded = mobileGraph.expanded;
-  // Collapsed = small preview cluster; expanded = grows to fill the same
-  // safe zone (never past it), so it can't creep onto the title or the hole
-  // on any device.
-  const radiusFactor = expanded ? 0.92 : 0.48;
+  // A two-finger pinch grows this preview circle directly over the 3D scene.
+  // At scale 1 it always returns to the safe strip above the hole.
+  const radiusFactor = 0.48;
   const baseRadius = zone.maxRadius * radiusFactor * mobileGraph.scale;
   const layout = constellationLayout[node.id] ?? { angle: 0, radius: 1 };
   const radius = baseRadius * layout.radius;
