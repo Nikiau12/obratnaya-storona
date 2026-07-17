@@ -111,9 +111,6 @@ const canvas = document.querySelector(".scene");
 const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const nodeLines = document.querySelector(".node-lines");
-const constellationLens = document.createElement("div");
-constellationLens.className = "constellation-lens";
-nodeLayer.insertBefore(constellationLens, nodeLines);
 const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -772,15 +769,11 @@ function layoutGraph() {
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
   const compact = isConstellationViewport();
-  const constellationMetrics = compact ? getConstellationMetrics(width, height) : null;
-  updateConstellationLens(constellationMetrics);
-  const constellationRing = constellationMetrics ? createConstellationRing(constellationMetrics) : null;
   // On mobile/tablet, only the connections touching the active node stay lit,
   // and they fade in one after another instead of all at once -- the web of
   // connections "grows" as you move your finger from point to point.
   const activeEdgeOrder = edges.filter(([from, to]) => from === activeNodeId || to === activeNodeId);
   nodeLines.replaceChildren(
-    ...(constellationRing ? [constellationRing] : []),
     ...edges.map(([from, to]) => {
       const fromNode = nodes.find((node) => node.id === from);
       const toNode = nodes.find((node) => node.id === to);
@@ -806,28 +799,6 @@ function layoutGraph() {
       return line;
     }),
   );
-}
-
-function updateConstellationLens(metrics) {
-  if (!metrics) {
-    constellationLens.style.width = "0";
-    constellationLens.style.height = "0";
-    return;
-  }
-
-  const lensRadius = metrics.radius + 28;
-  constellationLens.style.width = `${lensRadius * 2}px`;
-  constellationLens.style.height = `${lensRadius * 2}px`;
-  constellationLens.style.transform = `translate(${metrics.centerX - lensRadius}px, ${metrics.centerY - lensRadius}px)`;
-}
-
-function createConstellationRing({ centerX, centerY, radius }) {
-  const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  ring.setAttribute("class", "constellation-ring");
-  ring.setAttribute("cx", centerX);
-  ring.setAttribute("cy", centerY);
-  ring.setAttribute("r", radius);
-  return ring;
 }
 
 function getGraphPosition(node, width, height) {
