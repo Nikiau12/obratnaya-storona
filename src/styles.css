@@ -139,29 +139,10 @@ h1 {
   transition: color 130ms ease-out, opacity 130ms ease-out;
 }
 
-.node-label::before {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  width: clamp(2rem, 4vw, 4rem);
-  height: 1px;
-  background: currentColor;
-  content: "";
-  opacity: 0.32;
-  transform: translateY(-50%);
-}
-
 .node-label[data-id="signal"],
 .node-label[data-id="archive"],
 .node-label[data-id="showcase"] {
   gap: 0;
-}
-
-.node-label[data-id="signal"]::before,
-.node-label[data-id="archive"]::before,
-.node-label[data-id="showcase"]::before {
-  right: 8px;
-  left: auto;
 }
 
 .node-dot {
@@ -171,8 +152,8 @@ h1 {
   height: 0.72rem;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 3px rgba(251, 250, 247, 0.58);
+  background: #111111;
+  box-shadow: none;
   transition: width 130ms ease-out, height 130ms ease-out, transform 130ms ease-out;
 }
 
@@ -185,7 +166,7 @@ h1 {
   font-size: clamp(0.76rem, 1.1vw, 0.96rem);
   line-height: 1.1;
   white-space: nowrap;
-  text-shadow: none;
+  text-shadow: 0 0 3px rgba(251, 250, 247, 0.98), 0 0 7px rgba(251, 250, 247, 0.92);
   transition: transform 130ms ease-out;
 }
 

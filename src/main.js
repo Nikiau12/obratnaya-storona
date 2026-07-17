@@ -680,8 +680,8 @@ function getGraphPosition(node, width, height) {
 
   if (node.apex) {
     return {
-      x: centerX + width * (isMobile ? 0.03 : 0.02),
-      y: Math.max(height * (isMobile ? 0.33 : 0.29), centerY - height * (isMobile ? 0.28 : 0.39)),
+      x: centerX,
+      y: Math.max(height * (isMobile ? 0.31 : 0.2), centerY - height * (isMobile ? 0.31 : 0.5)),
     };
   }
 
