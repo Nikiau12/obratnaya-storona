@@ -104,13 +104,35 @@ h1 {
   pointer-events: none;
 }
 
+.constellation-points,
 .node-lines {
   position: absolute;
   inset: 0;
-  z-index: 1;
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+.constellation-points {
+  z-index: 0;
+}
+
+.constellation-thread {
+  stroke: rgba(17, 17, 17, 0.09);
+  stroke-width: 0.7;
+}
+
+.constellation-dot {
+  fill: rgba(17, 17, 17, 0.2);
+}
+
+.constellation-dot.cluster-1,
+.constellation-dot.cluster-2 {
+  fill: rgba(17, 17, 17, 0.27);
+}
+
+.node-lines {
+  z-index: 1;
 }
 
 .node-lines line {
@@ -140,6 +162,10 @@ h1 {
   pointer-events: auto;
   transform-origin: 0 0;
   transition: color 130ms ease-out, opacity 130ms ease-out;
+}
+
+.node-label[hidden] {
+  display: none;
 }
 
 .node-label[data-id="signal"],
@@ -397,7 +423,7 @@ h1 {
 @media (min-width: 640px) and (max-width: 1099px) {
   .info-panel {
     display: none;
-    top: 76vh;
+    top: 83vh;
     right: auto;
     bottom: auto;
     left: 50%;
@@ -418,5 +444,11 @@ h1 {
   .info-copy {
     font-size: clamp(0.86rem, 1.35vw, 1rem);
     line-height: 1.34;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1099px) and (orientation: portrait) {
+  .info-panel {
+    top: 84vh;
   }
 }

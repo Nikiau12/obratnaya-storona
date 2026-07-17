@@ -53,36 +53,80 @@ const nodes = [
     kind: "micro",
   },
   {
+    id: "day",
+    title: "Рубрика дня",
+    description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.",
+    kind: "micro",
+  },
+  {
     id: "archive",
     title: "Архив",
     description: "Следы, документы и будущие материалы издания.",
     ringAngle: 160,
     kind: "support",
   },
+  {
+    id: "about",
+    title: "О медиа",
+    description: "Издание о литературе, визуальном искусстве и скрытых процессах.",
+    kind: "support",
+  },
+  {
+    id: "contact",
+    title: "Контакты",
+    description: "Почта редакции и социальные каналы. Скоро здесь появятся ссылки.",
+    kind: "support",
+  },
 ];
 
 const edges = [
-  ["signal", "archive"],
   ["signal", "word"],
+  ["signal", "archive"],
   ["signal", "residents"],
-  ["archive", "residents"],
-  ["archive", "word"],
-  ["word", "residents"],
-  ["word", "flicker"],
-  ["flicker", "residents"],
   ["flicker", "showcase"],
-  ["showcase", "word"],
-  ["showcase", "residents"],
+  ["flicker", "day"],
+  ["flicker", "about"],
+  ["residents", "word"],
+  ["residents", "contact"],
+  ["showcase", "about"],
+  ["day", "word"],
+  ["archive", "day"],
+  ["about", "contact"],
 ];
 
 const constellationLayout = {
   residents: { angle: -90, radius: 1 },
-  flicker: { angle: -30, radius: 1 },
-  showcase: { angle: 30, radius: 1 },
-  word: { angle: 90, radius: 1 },
-  archive: { angle: 150, radius: 1 },
-  signal: { angle: 210, radius: 1 },
+  contact: { angle: -50, radius: 0.8 },
+  flicker: { angle: -10, radius: 1 },
+  about: { angle: 30, radius: 0.8 },
+  showcase: { angle: 58, radius: 0.78 },
+  word: { angle: 112, radius: 0.66 },
+  day: { angle: 152, radius: 0.72 },
+  archive: { angle: 190, radius: 1 },
+  signal: { angle: 230, radius: 1 },
 };
+
+// Desktop coordinates inherited from the first orbit sketch. They create an
+// off-centre editorial network instead of a symmetrical cone around the hole.
+const firstDraftDesktopLayout = {
+  signal: { x: 0.25, y: 0.64 },
+  flicker: { x: 0.77, y: 0.57 },
+  residents: { x: 0.45, y: 0.385 },
+  showcase: { x: 0.67, y: 0.38 },
+  word: { x: 0.305, y: 0.47 },
+  day: { x: 0.55, y: 0.73 },
+  archive: { x: 0.19, y: 0.525 },
+  about: { x: 0.85, y: 0.485 },
+  contact: { x: 0.59, y: 0.3 },
+};
+
+// The first draft had a second, non-interactive constellation around its
+// editorial nodes. These tiny points carry that graphic rhythm into the room.
+const decorativeClusters = [
+  { x: 0.48, y: 0.52, radiusX: 0.29, radiusY: 0.18, count: 32, phase: -1.15 },
+  { x: 0.29, y: 0.43, radiusX: 0.1, radiusY: 0.105, count: 12, phase: 0.45 },
+  { x: 0.72, y: 0.42, radiusX: 0.115, radiusY: 0.1, count: 14, phase: -0.62 },
+];
 
 const root = document.querySelector("#app");
 root.innerHTML = `
@@ -94,6 +138,7 @@ root.innerHTML = `
       <p class="lede">Онлайн-издание о литературе, визуальном искусстве и культурных инициативах, падающих в затемненную область процесса.</p>
     </section>
     <nav class="node-layer" aria-label="Разделы сайта">
+      <svg class="constellation-points" aria-hidden="true"></svg>
       <svg class="node-lines" aria-hidden="true"></svg>
     </nav>
     <aside class="info-panel" aria-live="polite">
@@ -110,6 +155,7 @@ root.innerHTML = `
 const canvas = document.querySelector(".scene");
 const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
+const constellationPoints = document.querySelector(".constellation-points");
 const nodeLines = document.querySelector(".node-lines");
 const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
@@ -125,6 +171,7 @@ const mobileGraph = {
   lastGestureAt: 0,
 };
 let activeNodeId = "signal";
+let decorativeLayoutKey = "";
 
 const nodeButtons = nodes.map((node) => {
   const button = document.createElement("button");
@@ -132,11 +179,17 @@ const nodeButtons = nodes.map((node) => {
   button.type = "button";
   button.dataset.id = node.id;
   button.innerHTML = `<span class="node-dot"></span><span class="node-text">${node.title}</span>`;
-  button.addEventListener("pointerenter", () => setActiveNode(node.id));
-  button.addEventListener("focus", () => setActiveNode(node.id));
+  button.addEventListener("pointerenter", () => {
+    revealCompactInfo();
+    setActiveNode(node.id);
+  });
+  button.addEventListener("focus", () => {
+    revealCompactInfo();
+    setActiveNode(node.id);
+  });
   button.addEventListener("click", () => {
     if (Date.now() - mobileGraph.lastGestureAt < 260) return;
-    if (isConstellationViewport()) document.body.classList.add("has-mobile-selection");
+    revealCompactInfo();
     setActiveNode(node.id);
   });
   nodeLayer.append(button);
@@ -647,6 +700,18 @@ function isConstellationViewport() {
   return window.innerWidth < 1100;
 }
 
+function revealCompactInfo() {
+  if (isConstellationViewport()) document.body.classList.add("has-mobile-selection");
+}
+
+function isPhoneViewport() {
+  return window.innerWidth < 640;
+}
+
+function getVisibleGraphNodes() {
+  return nodes;
+}
+
 function isMobileGraphGesture(event) {
   if (!isConstellationViewport() || event.pointerType !== "touch") return false;
   const zone = getConstellationZone(window.innerWidth, window.innerHeight);
@@ -726,7 +791,7 @@ function activateNearestMobileNode() {
   const zone = getConstellationZone(window.innerWidth, window.innerHeight);
   const focusX = window.innerWidth * 0.5;
   const focusY = zone.focusY;
-  const nearest = nodes.reduce((closest, node) => {
+  const nearest = getVisibleGraphNodes().reduce((closest, node) => {
     const position = getGraphPosition(node, window.innerWidth, window.innerHeight);
     const distance = Math.hypot(position.x - focusX, position.y - focusY);
     return distance < closest.distance ? { node, distance } : closest;
@@ -759,26 +824,33 @@ function layoutGraph() {
 
   const width = window.innerWidth;
   const height = window.innerHeight;
-  const graphPositions = new Map(nodes.map((node) => [node.id, getGraphPosition(node, width, height)]));
+  const compact = isConstellationViewport();
+  const phone = isPhoneViewport();
+  layoutDecorativeConstellation(width, height, phone);
+  const visibleNodes = getVisibleGraphNodes();
+  const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
+  const visibleEdges = edges.filter(([from, to]) => visibleNodeIds.has(from) && visibleNodeIds.has(to));
+  const graphPositions = new Map(visibleNodes.map((node) => [node.id, getGraphPosition(node, width, height)]));
   const activeConnections = new Set(
-    edges.filter(([from, to]) => from === activeNodeId || to === activeNodeId).flat(),
+    visibleEdges.filter(([from, to]) => from === activeNodeId || to === activeNodeId).flat(),
   );
 
   nodes.forEach((node, index) => {
     const button = nodeButtons[index];
+    button.hidden = !visibleNodeIds.has(node.id);
+    if (button.hidden) return;
     const position = graphPositions.get(node.id);
     button.style.transform = `translate(${position.x}px, ${position.y}px)`;
     button.classList.toggle("is-connected", activeConnections.has(node.id));
   });
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  const compact = isConstellationViewport();
   // On mobile/tablet, only the connections touching the active node stay lit,
   // and they fade in one after another instead of all at once -- the web of
   // connections "grows" as you move your finger from point to point.
-  const activeEdgeOrder = edges.filter(([from, to]) => from === activeNodeId || to === activeNodeId);
+  const activeEdgeOrder = visibleEdges.filter(([from, to]) => from === activeNodeId || to === activeNodeId);
   nodeLines.replaceChildren(
-    ...edges.map(([from, to]) => {
+    ...visibleEdges.map(([from, to]) => {
       const fromNode = nodes.find((node) => node.id === from);
       const toNode = nodes.find((node) => node.id === to);
       const isLit = from === activeNodeId || to === activeNodeId;
@@ -805,30 +877,99 @@ function layoutGraph() {
   );
 }
 
-function getGraphPosition(node, width, height) {
-  const isMobile = width < 640;
-  const isCompact = width < 1100;
+function layoutDecorativeConstellation(width, height, phone) {
+  const layoutKey = `${width}:${height}:${phone}`;
+  if (layoutKey === decorativeLayoutKey) return;
+  decorativeLayoutKey = layoutKey;
 
-  if (isCompact) {
+  constellationPoints.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  const elements = [];
+  const clusters = phone ? getPhoneDecorativeClusters(width, height) : decorativeClusters.map((cluster) => ({
+    ...cluster,
+    centerX: width * cluster.x,
+    centerY: height * cluster.y,
+    radiusX: width * cluster.radiusX,
+    radiusY: height * cluster.radiusY,
+  }));
+
+  clusters.forEach((cluster, clusterIndex) => {
+    const centerX = cluster.centerX;
+    const centerY = cluster.centerY;
+    const points = Array.from({ length: cluster.count }, (_, index) => {
+      const angle = cluster.phase + index * 2.3999632297;
+      const spread = 0.3 + ((index % 8) / 10) + Math.sqrt((index + 1) / cluster.count) * 0.32;
+      return {
+        x: centerX + Math.cos(angle) * cluster.radiusX * spread,
+        y: centerY + Math.sin(angle) * cluster.radiusY * spread,
+        radius: (phone ? 0.9 : 1.45) + (index % 4) * (phone ? 0.24 : 0.38),
+      };
+    });
+
+    points.forEach((point, index) => {
+      if (index > 0 && index % 3 === 0) {
+        const previous = points[index - 1];
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", previous.x);
+        line.setAttribute("y1", previous.y);
+        line.setAttribute("x2", point.x);
+        line.setAttribute("y2", point.y);
+        line.setAttribute("class", "constellation-thread");
+        elements.push(line);
+      }
+
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", point.x);
+      dot.setAttribute("cy", point.y);
+      dot.setAttribute("r", point.radius);
+      dot.setAttribute("class", `constellation-dot cluster-${clusterIndex}`);
+      elements.push(dot);
+    });
+  });
+
+  constellationPoints.replaceChildren(...elements);
+}
+
+function getPhoneDecorativeClusters(width, height) {
+  const metrics = getConstellationMetrics(width, height);
+  return [
+    {
+      centerX: metrics.centerX,
+      centerY: metrics.centerY,
+      radiusX: metrics.radius * 0.82,
+      radiusY: metrics.radius * 0.68,
+      count: 34,
+      phase: -1.2,
+    },
+  ];
+}
+
+function getGraphPosition(node, width, height) {
+  if (width < 640) {
     return getConstellationPosition(node, width, height);
   }
 
-  const centerX = width * 0.5;
-  const centerY = height * 0.69;
-  const radiusX = Math.min(width * 0.36, 520);
-  const radiusY = height * 0.09;
-
-  if (node.apex) {
-    return {
-      x: centerX,
-      y: Math.max(height * 0.2, centerY - height * 0.5),
-    };
+  if (width < 1100) {
+    return getTabletGraphPosition(node, width, height);
   }
 
-  const angle = THREE.MathUtils.degToRad(node.ringAngle);
+  const position = firstDraftDesktopLayout[node.id];
   return {
-    x: centerX + Math.cos(angle) * radiusX,
-    y: centerY - Math.sin(angle) * radiusY,
+    x: width * position.x,
+    y: height * position.y,
+  };
+}
+
+function getTabletGraphPosition(node, width, height) {
+  const position = firstDraftDesktopLayout[node.id];
+  const centerX = width * 0.5;
+  const centerY = height * 0.46;
+  const baseX = width * position.x;
+  // Keep the desktop diagram intact while fitting it above the floor hole.
+  const baseY = height * (0.16 + position.y * 0.6);
+
+  return {
+    x: centerX + (baseX - centerX) * mobileGraph.scale + mobileGraph.offsetX,
+    y: centerY + (baseY - centerY) * mobileGraph.scale + mobileGraph.offsetY,
   };
 }
 
