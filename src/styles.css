@@ -376,6 +376,30 @@ h1 {
     gap: 0.18rem;
     font-size: 0.7rem;
     line-height: 1.15;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .is-contact-active .footer {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .node-label[data-id="showcase"] {
+    gap: 0.55rem;
+  }
+
+  .node-label[data-id="showcase"] .node-text {
+    position: relative;
+    right: auto;
+    text-align: left;
+  }
+
+  .node-label[data-id="showcase"].is-active .node-text,
+  .node-label[data-id="showcase"]:hover .node-text {
+    transform: translateX(0.08rem);
   }
 
   .info-panel {
