@@ -8,6 +8,9 @@ const objectSpecs = [
   { type: "lemon", width: 0.64, height: 0.64, duration: 15.8 },
   { type: "stone", width: 0.68, height: 0.68, duration: 16.9 },
   { type: "propeller", width: 0.76, height: 0.76, duration: 13.6 },
+  { type: "glass", width: 0.66, height: 0.76, duration: 17.6 },
+  { type: "rook", width: 0.5, height: 0.74, duration: 18.4 },
+  { type: "lightning", width: 0.5, height: 0.82, duration: 15.1 },
 ];
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -16,14 +19,17 @@ const assetUrls = {
   lemon: assetPath("assets/object-lemon.webp"),
   stone: assetPath("assets/object-stone.webp"),
   propeller: assetPath("assets/object-propeller.webp"),
+  glass: assetPath("assets/object-glass.webp?v=3"),
+  rook: assetPath("assets/object-rook.webp"),
+  lightning: assetPath("assets/object-lightning.webp?v=3"),
 };
 
 const nodes = [
   { id: "signal", title: "Носорог", description: "", kind: "project", status: "live" },
-  { id: "flicker", title: "Taylor Books", description: "", kind: "project", status: "live" },
-  { id: "residents", title: "Обратная сторона — медиа", description: "", kind: "project", status: "upcoming" },
-  { id: "showcase", title: "Онлайн-книжный", description: "", kind: "project", status: "upcoming" },
-  { id: "word", title: "press me", description: "", kind: "project", status: "upcoming" },
+  { id: "flicker", title: "Teller Books", description: "", kind: "project", status: "live" },
+  { id: "residents", title: "онлайн-медиа Обратная сторона", description: "", kind: "project", status: "upcoming" },
+  { id: "showcase", title: "книжный", description: "", kind: "project", status: "upcoming" },
+  { id: "word", title: "Носорог х Press mi", description: "", kind: "project", status: "live" },
   { id: "day", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "archive", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "about", title: "", description: "", kind: "placeholder", status: "placeholder" },
@@ -58,7 +64,7 @@ const compactLayout = {
 // of one another; regular phones continue to use the radial layout above.
 const shortPhoneLayout = {
   signal: { x: 0.25, y: 0.12 }, residents: { x: 0.49, y: 0.08 }, contact: { x: 0.69, y: 0.16 },
-  archive: { x: 0.19, y: 0.45 }, day: { x: 0.39, y: 0.42 }, flicker: { x: 0.72, y: 0.46 },
+  archive: { x: 0.19, y: 0.45 }, day: { x: 0.39, y: 0.42 }, flicker: { x: 0.72, y: 0.54 },
   word: { x: 0.3, y: 0.8 }, showcase: { x: 0.53, y: 0.78 }, about: { x: 0.72, y: 0.82 },
 };
 
@@ -69,7 +75,7 @@ root.innerHTML = `
     <section class="intro" aria-labelledby="page-title">
       <p class="kicker">независимое медиа</p>
       <h1 id="page-title">Обратная сторона</h1>
-      <p class="lede">Онлайн-издание о литературе, визуальном искусстве и культурных инициативах, падающих в затемненную область процесса.</p>
+      <p class="lede">Независимый издательский проект, констелляция книжных практик.</p>
     </section>
     <nav class="node-layer" aria-label="Проекты Обратной стороны">
       <svg class="constellation-points" aria-hidden="true"></svg>
@@ -106,7 +112,7 @@ const particles = Array.from({ length: 74 }, (_, i) => ({
   height: (i % 9) / 10,
 }));
 const fallingObjects = objectSpecs.map((spec, index) => ({
-  ...spec, index, offset: index * 0.23, direction: index % 2 ? -1 : 1,
+  ...spec, index, offset: index / objectSpecs.length, direction: index % 2 ? -1 : 1,
 }));
 
 let width = 1;
@@ -457,7 +463,7 @@ function getObjectState(item, time, m) {
     item, cycle, redshift, behind: Math.sin(angle) < 0,
     x, y,
     groundX, groundY, angle,
-    rotation: tumble,
+    rotation: item.type === "lightning" ? 0 : tumble,
     scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.86 : 1),
     alpha: Math.exp(-4.8 * redshift * redshift),
   };
@@ -530,12 +536,23 @@ function layoutGraph() {
     nodeButtons[index].classList.toggle("is-connected", connected.has(node.id));
   });
 
+  // Labels can wrap and dots use different visual sizes at each breakpoint.
+  // Measure the rendered dot itself so every connection lands on its true
+  // centre instead of relying on a desktop-sized magic offset.
+  const anchors = new Map(nodes.map((node, index) => {
+    const dotRect = nodeButtons[index].querySelector(".node-dot").getBoundingClientRect();
+    return [node.id, {
+      x: dotRect.left + dotRect.width * 0.5,
+      y: dotRect.top + dotRect.height * 0.5,
+    }];
+  }));
+
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
   nodeLines.replaceChildren(...edges.map(([from, to], index) => {
-    const a = positions.get(from); const b = positions.get(to);
+    const a = anchors.get(from); const b = anchors.get(to);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", a.x + 6); line.setAttribute("y1", a.y + 6);
-    line.setAttribute("x2", b.x + 6); line.setAttribute("y2", b.y + 6);
+    line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+    line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
     if (from === activeNodeId || to === activeNodeId) line.setAttribute("class", "is-lit");
     line.style.transitionDelay = isCompact() ? `${(index % 3) * 70}ms` : "0ms";
     return line;
@@ -636,6 +653,14 @@ function moveGraphGesture(event) {
     const [a, b] = [...mobileGraph.pointers.values()];
     const distance = Math.hypot(b.x - a.x, b.y - a.y);
     mobileGraph.scale = clamp(mobileGraph.pinchScale * distance / Math.max(1, mobileGraph.pinchDistance), 1, 2.4);
+    if (mobileGraph.scale <= 1.001) {
+      mobileGraph.offsetX = 0;
+      mobileGraph.offsetY = 0;
+    } else {
+      const limit = Math.min(width, height) * (mobileGraph.scale - 0.8) * 0.25;
+      mobileGraph.offsetX = clamp(mobileGraph.offsetX, -limit, limit);
+      mobileGraph.offsetY = clamp(mobileGraph.offsetY, -limit * 0.55, limit * 0.55);
+    }
   }
   mobileGraph.lastGestureAt = Date.now();
   layoutGraph();
