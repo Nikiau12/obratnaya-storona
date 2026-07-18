@@ -24,7 +24,7 @@ const nodes = [
   { id: "day", title: "Рубрика дня", description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.", kind: "micro" },
   { id: "archive", title: "Архив", description: "Следы, документы и будущие материалы издания.", kind: "support" },
   { id: "about", title: "О медиа", description: "Издание о литературе, визуальном искусстве и скрытых процессах.", kind: "support" },
-  { id: "contact", title: "Контакты", description: "hello@obratnaya.media\nзапуск в процессе. Скоро здесь появятся ссылки.", kind: "support" },
+  { id: "contact", title: "Контакты", description: "hello@obratnaya.media\nЗапуск в процессе. Скоро здесь появятся ссылки.", kind: "support" },
 ];
 
 const edges = [
