@@ -9,10 +9,10 @@ const objectSpecs = [
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
 const assetUrls = {
-  vangogh: assetPath("assets/vangogh-starry-night.jpg"),
-  writer: assetPath("assets/dostoevsky-portrait.jpg"),
-  rodin: assetPath("assets/rodin-cutout.png"),
-  times: assetPath("assets/times-masthead.png"),
+  vangogh: assetPath("assets/vangogh-starry-night.webp"),
+  writer: assetPath("assets/dostoevsky-portrait.webp"),
+  rodin: assetPath("assets/rodin-cutout.webp"),
+  times: assetPath("assets/times-masthead.webp"),
 };
 
 const nodes = [
