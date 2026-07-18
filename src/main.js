@@ -104,7 +104,9 @@ let height = 1;
 let ratio = 1;
 let activeNodeId = "signal";
 let startTime = performance.now();
-let lastFrame = startTime;
+let lastTick = startTime;
+let frameAccumulator = 0;
+const targetFrameDuration = 1000 / 60;
 
 const nodeButtons = nodes.map((node) => {
   const button = document.createElement("button");
@@ -149,16 +151,20 @@ function resize() {
 }
 
 function render(now) {
+  requestAnimationFrame(render);
+  frameAccumulator += Math.min(now - lastTick, 50);
+  lastTick = now;
+  if (frameAccumulator < targetFrameDuration - 0.1) return;
+
   const elapsed = (now - startTime) / 1000;
-  const delta = Math.min((now - lastFrame) / 1000, 0.05);
-  lastFrame = now;
+  const delta = Math.min(frameAccumulator / 1000, 0.05);
+  frameAccumulator = Math.max(0, frameAccumulator - targetFrameDuration);
   pointer.easedX += (pointer.x - pointer.easedX) * Math.min(1, delta * 3.3);
   pointer.easedY += (pointer.y - pointer.easedY) * Math.min(1, delta * 3.3);
 
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   drawRoom(elapsed);
   drawScene(elapsed);
-  requestAnimationFrame(render);
 }
 
 function sceneMetrics() {
