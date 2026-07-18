@@ -167,6 +167,10 @@ h1 {
   display: none;
 }
 
+.info-panel[hidden] {
+  display: none;
+}
+
 .node-label[data-id="signal"],
 .node-label[data-id="archive"],
 .node-label[data-id="showcase"] {

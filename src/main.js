@@ -1,5 +1,10 @@
 import "./styles.css";
 
+// The current labels describe sections of the future media site, not the
+// publishing projects represented by this card. Keep the data ready for later
+// work, but do not expose it until the client supplies the final project list.
+const projectContentReady = false;
+
 const objectSpecs = [
   { type: "vangogh", width: 0.72, height: 0.58, duration: 14.2 },
   { type: "writer", width: 0.52, height: 0.72, duration: 15.8 },
@@ -68,11 +73,11 @@ root.innerHTML = `
       <h1 id="page-title">Обратная сторона</h1>
       <p class="lede">Онлайн-издание о литературе, визуальном искусстве и культурных инициативах, падающих в затемненную область процесса.</p>
     </section>
-    <nav class="node-layer" aria-label="Разделы сайта">
+    <nav class="node-layer" aria-label="Проекты Обратной стороны">
       <svg class="constellation-points" aria-hidden="true"></svg>
       <svg class="node-lines" aria-hidden="true"></svg>
     </nav>
-    <aside class="info-panel" aria-live="polite">
+    <aside class="info-panel" aria-live="polite"${projectContentReady ? "" : " hidden"}>
       <span class="info-title"></span><span class="info-copy"></span>
     </aside>
   </main>`;
@@ -115,15 +120,16 @@ let lastTick = startTime;
 let frameAccumulator = 0;
 const targetFrameDuration = 1000 / 60;
 
-const nodeButtons = nodes.map((node) => {
+const nodeButtons = nodes.map((node, index) => {
   const button = document.createElement("button");
   button.className = `node-label is-${node.kind}`;
   button.type = "button";
   button.dataset.id = node.id;
-  button.innerHTML = `<span class="node-dot"></span><span class="node-text">${node.title}</span>`;
+  button.setAttribute("aria-label", projectContentReady ? node.title : `Проект ${index + 1}: название уточняется`);
+  button.innerHTML = `<span class="node-dot"></span>${projectContentReady ? `<span class="node-text">${node.title}</span>` : ""}`;
   ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
     if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
-    if (isCompact()) document.body.classList.add("has-mobile-selection");
+    if (isCompact() && projectContentReady) document.body.classList.add("has-mobile-selection");
     setActiveNode(node.id);
   }));
   nodeLayer.append(button);
