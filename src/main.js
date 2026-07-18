@@ -73,7 +73,9 @@ root.innerHTML = `
   </main>`;
 
 const canvas = document.querySelector(".scene");
-const ctx = canvas.getContext("2d", { alpha: false });
+let ctx = canvas.getContext("2d", { alpha: false });
+const roomCanvas = document.createElement("canvas");
+const cachedRoomCtx = roomCanvas.getContext("2d", { alpha: false });
 const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const constellationPoints = document.querySelector(".constellation-points");
@@ -141,13 +143,24 @@ requestAnimationFrame(render);
 function resize() {
   width = innerWidth;
   height = innerHeight;
-  const budget = width < 720 ? 5_000_000 : 10_000_000;
-  ratio = Math.max(1, Math.min(devicePixelRatio || 1, 2, Math.sqrt(budget / (width * height))));
+  const budget = width < 720 ? 3_000_000 : 5_000_000;
+  ratio = Math.max(1, Math.min(devicePixelRatio || 1, 1.25, Math.sqrt(budget / (width * height))));
   canvas.width = Math.round(width * ratio);
   canvas.height = Math.round(height * ratio);
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
+  rebuildRoomCache();
   layoutGraph();
+}
+
+function rebuildRoomCache() {
+  roomCanvas.width = canvas.width;
+  roomCanvas.height = canvas.height;
+  cachedRoomCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const liveCtx = ctx;
+  ctx = cachedRoomCtx;
+  drawRoom(0, true);
+  ctx = liveCtx;
 }
 
 function render(now) {
@@ -162,23 +175,26 @@ function render(now) {
   pointer.easedX += (pointer.x - pointer.easedX) * Math.min(1, delta * 3.3);
   pointer.easedY += (pointer.y - pointer.easedY) * Math.min(1, delta * 3.3);
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(roomCanvas, 0, 0);
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  drawRoom(elapsed);
   drawScene(elapsed);
 }
 
-function sceneMetrics() {
+function sceneMetrics(staticScene = false) {
   const mobile = width < 640;
+  const parallaxX = staticScene ? 0 : pointer.easedX;
+  const parallaxY = staticScene ? 0 : pointer.easedY;
   return {
-    horizon: height * (mobile ? 0.52 : 0.47) + pointer.easedY * 8,
-    holeX: width * 0.5 + pointer.easedX * 20,
+    horizon: height * (mobile ? 0.52 : 0.47) + parallaxY * 8,
+    holeX: width * 0.5 + parallaxX * 20,
     holeY: height * (mobile ? 0.665 : 0.69),
     holeW: Math.min(width * (mobile ? 0.42 : 0.25), height * 0.31),
   };
 }
 
-function drawRoom(time) {
-  const m = sceneMetrics();
+function drawRoom(time, staticScene = false) {
+  const m = sceneMetrics(staticScene);
   ctx.fillStyle = "#fbfaf7";
   ctx.fillRect(0, 0, width, height);
 
@@ -188,7 +204,7 @@ function drawRoom(time) {
   ctx.fillStyle = wall;
   ctx.fillRect(0, 0, width, m.horizon + 2);
 
-  const vanishingX = width * 0.5 + pointer.easedX * 25;
+  const vanishingX = width * 0.5 + (staticScene ? 0 : pointer.easedX * 25);
   ctx.fillStyle = "rgba(255,255,255,.14)";
   ctx.beginPath();
   ctx.moveTo(0, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(0, height); ctx.closePath();
@@ -323,7 +339,6 @@ function drawHole(m, time) {
     { scale: 1.16, alpha: 0.075, line: 0.052, phase: 4.1 },
   ];
   ctx.save();
-  ctx.filter = `blur(${Math.max(1.5, w * 0.008)}px)`;
   horizons.forEach((horizon) => {
     const densityWave = Math.sin(time * 0.9 + horizon.phase) * 0.008;
     const flowScale = 1 + breath * 0.035 + flowSignal * 0.008 + densityWave;
@@ -397,20 +412,14 @@ function drawObject(state) {
 
   ctx.save();
   ctx.globalAlpha = alpha * (0.1 + state.cycle * 0.9);
-  ctx.fillStyle = "rgba(0,0,0,.18)";
-  ctx.filter = "blur(5px)";
+  ctx.fillStyle = "rgba(0,0,0,.1)";
   ellipse(groundX, groundY + 2, objectW * 0.42, objectH * 0.1);
   ctx.restore();
 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rotation);
-  ctx.globalAlpha = alpha;
-  ctx.filter = `brightness(${1 - redshift * 0.68}) sepia(${redshift * 0.78}) saturate(${1 + redshift * 0.5})`;
-  ctx.shadowColor = "rgba(0,0,0,.22)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetX = 5;
-  ctx.shadowOffsetY = 7;
+  ctx.globalAlpha = alpha * (1 - redshift * 0.28);
   drawSprite(item.type, objectW, objectH);
   ctx.restore();
 }
