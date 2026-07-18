@@ -44,10 +44,19 @@ const desktopLayout = {
 
 const compactLayout = {
   residents: { angle: -90, radius: 1 }, contact: { angle: -50, radius: 0.8 },
-  flicker: { angle: -10, radius: 1 }, about: { angle: 30, radius: 0.8 },
+  flicker: { angle: -10, radius: 0.9 }, about: { angle: 30, radius: 0.8 },
   showcase: { angle: 58, radius: 0.78 }, word: { angle: 112, radius: 0.66 },
   day: { angle: 152, radius: 0.72 }, archive: { angle: 190, radius: 1 },
   signal: { angle: 230, radius: 1 },
+};
+
+// A very short phone cannot fit nine readable labels around a circle. Three
+// staggered rows preserve the network character without forcing labels on top
+// of one another; regular phones continue to use the radial layout above.
+const shortPhoneLayout = {
+  signal: { x: 0.25, y: 0.12 }, residents: { x: 0.49, y: 0.08 }, contact: { x: 0.69, y: 0.16 },
+  archive: { x: 0.19, y: 0.45 }, day: { x: 0.39, y: 0.42 }, flicker: { x: 0.72, y: 0.46 },
+  word: { x: 0.3, y: 0.8 }, showcase: { x: 0.53, y: 0.78 }, about: { x: 0.72, y: 0.82 },
 };
 
 const root = document.querySelector("#app");
@@ -179,13 +188,28 @@ function render(now) {
 
 function sceneMetrics(staticScene = false) {
   const mobile = width < 640;
+  const tablet = width >= 640 && width < 1100;
   const parallaxX = staticScene ? 0 : pointer.easedX;
   const parallaxY = staticScene ? 0 : pointer.easedY;
+  const horizon = height * (mobile ? 0.52 : 0.47) + parallaxY * 8;
+  const vanishingX = width * 0.5 + parallaxX * 25;
+
+  // The hole uses a different visual budget at each breakpoint. In particular,
+  // its outermost ring now stays close to the phone width instead of inheriting
+  // the much larger desktop proportions.
+  const holeW = mobile
+    ? Math.min(width * 0.265, height * 0.19)
+    : tablet
+      ? Math.min(width * 0.23, height * 0.24)
+      : Math.min(width * 0.19, height * 0.27);
+
   return {
-    horizon: height * (mobile ? 0.52 : 0.47) + parallaxY * 8,
+    horizon,
+    vanishingX,
+    perspectiveEdgeY: horizon + (height - horizon) * 0.16,
     holeX: width * 0.5 + parallaxX * 20,
-    holeY: height * (mobile ? 0.665 : 0.69),
-    holeW: Math.min(width * (mobile ? 0.42 : 0.25), height * 0.31),
+    holeY: height * (mobile ? 0.68 : 0.69),
+    holeW,
   };
 }
 
@@ -200,7 +224,7 @@ function drawRoom(time, staticScene = false) {
   ctx.fillStyle = wall;
   ctx.fillRect(0, 0, width, m.horizon + 2);
 
-  const vanishingX = width * 0.5 + (staticScene ? 0 : pointer.easedX * 25);
+  const vanishingX = m.vanishingX;
   ctx.fillStyle = "rgba(255,255,255,.14)";
   ctx.beginPath();
   ctx.moveTo(0, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(0, height); ctx.closePath();
@@ -222,11 +246,10 @@ function drawRoom(time, staticScene = false) {
   ctx.beginPath(); ctx.moveTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.stroke();
   ctx.strokeStyle = "#000000";
   ctx.lineWidth = 1.55;
-  const perspectiveEdgeY = m.horizon + (height - m.horizon) * 0.16;
   ctx.beginPath();
-  ctx.moveTo(0, perspectiveEdgeY);
+  ctx.moveTo(0, m.perspectiveEdgeY);
   ctx.lineTo(vanishingX, m.horizon);
-  ctx.lineTo(width, perspectiveEdgeY);
+  ctx.lineTo(width, m.perspectiveEdgeY);
   ctx.stroke();
 
   const glow = ctx.createRadialGradient(width * 0.5, height * 0.3, 0, width * 0.5, height * 0.3, Math.max(width, height) * 0.7);
@@ -253,9 +276,10 @@ function drawWallHatching(m, vanishingX) {
   ctx.beginPath();
   ctx.rect(0, 0, width, m.horizon);
   ctx.clip();
-  ctx.strokeStyle = "rgba(42,39,35,.18)";
-  ctx.lineWidth = 0.78;
+  ctx.strokeStyle = `rgba(42,39,35,${width < 640 ? 0.13 : width < 1100 ? 0.155 : 0.18})`;
+  ctx.lineWidth = width < 640 ? 0.68 : 0.78;
   ctx.lineCap = "round";
+  const hatchCount = width < 640 ? 54 : width < 1100 ? 70 : 88;
 
   const strokeOnWall = (startX, startY, endX, endY, side) => {
     ctx.save();
@@ -270,7 +294,7 @@ function drawWallHatching(m, vanishingX) {
   };
 
   for (let side = 0; side < 2; side += 1) {
-    for (let index = 0; index < 88; index += 1) {
+    for (let index = 0; index < hatchCount; index += 1) {
       const seed = index + side * 41;
       const localX = ((seed * 83 + 29) % 997) / 997;
       const depth = ((seed * 47 + 13) % 991) / 991;
@@ -335,6 +359,17 @@ function drawHole(m, time) {
     { scale: 1.16, alpha: 0.075, line: 0.052, phase: 4.1 },
   ];
   ctx.save();
+  // The accretion rings belong to the floor plane. Clipping them to its
+  // perspective polygon prevents the wide ellipses from climbing onto the
+  // walls on narrow and short screens.
+  ctx.beginPath();
+  ctx.moveTo(0, m.perspectiveEdgeY);
+  ctx.lineTo(m.vanishingX, m.horizon);
+  ctx.lineTo(width, m.perspectiveEdgeY);
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
+  ctx.closePath();
+  ctx.clip();
   horizons.forEach((horizon) => {
     const densityWave = Math.sin(time * 0.9 + horizon.phase) * 0.008;
     const flowScale = 1 + breath * 0.035 + flowSignal * 0.008 + densityWave;
@@ -535,23 +570,54 @@ function graphPosition(node) {
     return { x: cx + (width * p.x - cx) * mobileGraph.scale + mobileGraph.offsetX, y: cy + (height * (0.16 + p.y * 0.6) - cy) * mobileGraph.scale + mobileGraph.offsetY };
   }
   const zone = constellationZone();
+  if (height < 700) {
+    const p = shortPhoneLayout[node.id];
+    const centerX = width * 0.5;
+    const centerY = zone.safeTop + zone.zoneHeight * 0.5;
+    const rawX = width * p.x;
+    const rawY = zone.safeTop + zone.zoneHeight * p.y;
+    return {
+      x: centerX + (rawX - centerX) * mobileGraph.scale + mobileGraph.offsetX,
+      y: centerY + (rawY - centerY) * mobileGraph.scale + mobileGraph.offsetY,
+    };
+  }
   const layout = compactLayout[node.id];
-  const radius = zone.radius * layout.radius * mobileGraph.scale;
+  const radiusX = zone.radiusX * layout.radius * mobileGraph.scale;
+  const radiusY = zone.radiusY * layout.radius * mobileGraph.scale;
   const angle = layout.angle * Math.PI / 180;
-  return { x: width * 0.5 + Math.cos(angle) * radius + mobileGraph.offsetX, y: zone.centerY + Math.sin(angle) * radius + mobileGraph.offsetY };
+  return {
+    x: width * 0.5 + Math.cos(angle) * radiusX + mobileGraph.offsetX,
+    y: zone.centerY + Math.sin(angle) * radiusY + mobileGraph.offsetY,
+  };
 }
 
 function constellationZone() {
   const safeTop = intro.getBoundingClientRect().bottom + Math.max(16, height * 0.022);
-  const safeBottom = height * (width < 640 ? 0.58 : 0.62) - 26;
+  const floorBoundary = sceneMetrics(true).perspectiveEdgeY;
+  const safeBottom = width < 640
+    ? Math.min(height * 0.61, floorBoundary - 18)
+    : height * 0.62 - 26;
   const zoneHeight = Math.max(60, safeBottom - safeTop);
-  return { centerY: safeTop + zoneHeight / 2 + height * 0.025, radius: Math.max(32, Math.min(zoneHeight / 2, width * 0.4)) * 0.95 };
+  const radiusY = Math.max(32, Math.min(zoneHeight / 2, width * 0.4)) * 0.95;
+  const radiusX = width < 640 && height < 700
+    ? Math.min(width * 0.32, Math.max(radiusY * 2.25, width * 0.3))
+    : radiusY;
+  return {
+    safeTop,
+    zoneHeight,
+    centerY: safeTop + zoneHeight / 2 + Math.min(12, height * 0.015),
+    radiusX,
+    radiusY,
+  };
 }
 
 function layoutDecorations() {
   constellationPoints.setAttribute("viewBox", `0 0 ${width} ${height}`);
   const elements = [];
-  const center = width < 640 ? { x: width * 0.5, y: constellationZone().centerY, rx: constellationZone().radius * 0.82, ry: constellationZone().radius * 0.68 } : { x: width * 0.48, y: height * 0.52, rx: width * 0.29, ry: height * 0.18 };
+  const zone = width < 640 ? constellationZone() : null;
+  const center = zone
+    ? { x: width * 0.5, y: zone.centerY, rx: zone.radiusX * 0.82, ry: zone.radiusY * 0.68 }
+    : { x: width * 0.48, y: height * 0.52, rx: width * 0.29, ry: height * 0.18 };
   for (let i = 0; i < (width < 640 ? 34 : 42); i += 1) {
     const angle = -1.2 + i * 2.399963;
     const spread = 0.3 + (i % 8) / 10 + Math.sqrt((i + 1) / 42) * 0.32;
