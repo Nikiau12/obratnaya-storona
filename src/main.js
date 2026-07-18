@@ -24,7 +24,7 @@ const nodes = [
   { id: "day", title: "Рубрика дня", description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.", kind: "micro" },
   { id: "archive", title: "Архив", description: "Следы, документы и будущие материалы издания.", kind: "support" },
   { id: "about", title: "О медиа", description: "Издание о литературе, визуальном искусстве и скрытых процессах.", kind: "support" },
-  { id: "contact", title: "Контакты", description: "Почта редакции и социальные каналы. Скоро здесь появятся ссылки.", kind: "support" },
+  { id: "contact", title: "Контакты", description: "hello@obratnaya.media\nзапуск в процессе. Скоро здесь появятся ссылки.", kind: "support" },
 ];
 
 const edges = [
@@ -66,10 +66,6 @@ root.innerHTML = `
     <aside class="info-panel" aria-live="polite">
       <span class="info-title"></span><span class="info-copy"></span>
     </aside>
-    <footer class="footer">
-      <a href="mailto:hello@obratnaya.media">hello@obratnaya.media</a>
-      <span>запуск в процессе</span>
-    </footer>
   </main>`;
 
 const canvas = document.querySelector(".scene");
@@ -502,7 +498,6 @@ function ellipse(x, y, rx, ry, stroke = false) {
 function setActiveNode(id) {
   activeNodeId = id;
   const node = nodes.find((item) => item.id === id);
-  document.body.classList.toggle("is-contact-active", id === "contact");
   infoTitle.textContent = node.title;
   infoCopy.textContent = node.description;
   nodeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.id === id));
