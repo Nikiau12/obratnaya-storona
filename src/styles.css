@@ -172,8 +172,7 @@ h1 {
 }
 
 .node-label[data-id="signal"],
-.node-label[data-id="archive"],
-.node-label[data-id="showcase"] {
+.node-label[data-id="archive"] {
   gap: 0;
 }
 
@@ -203,8 +202,7 @@ h1 {
 }
 
 .node-label[data-id="signal"] .node-text,
-.node-label[data-id="archive"] .node-text,
-.node-label[data-id="showcase"] .node-text {
+.node-label[data-id="archive"] .node-text {
   position: absolute;
   right: calc(100% + 0.55rem);
   text-align: right;
@@ -233,10 +231,8 @@ h1 {
 
 .node-label[data-id="signal"].is-active .node-text,
 .node-label[data-id="archive"].is-active .node-text,
-.node-label[data-id="showcase"].is-active .node-text,
 .node-label[data-id="signal"]:hover .node-text,
-.node-label[data-id="archive"]:hover .node-text,
-.node-label[data-id="showcase"]:hover .node-text {
+.node-label[data-id="archive"]:hover .node-text {
   transform: translateX(-0.08rem);
 }
 

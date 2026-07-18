@@ -1,9 +1,7 @@
 import "./styles.css";
 
-// The current labels describe sections of the future media site, not the
-// publishing projects represented by this card. Keep the data ready for later
-// work, but do not expose it until the client supplies the final project list.
-const projectContentReady = false;
+const projectLabelsReady = true;
+const projectDetailsReady = false;
 
 const objectSpecs = [
   { type: "vangogh", width: 0.72, height: 0.58, duration: 14.2 },
@@ -21,15 +19,15 @@ const assetUrls = {
 };
 
 const nodes = [
-  { id: "signal", title: "Сигнал", description: "Лонгриды, рецензии и события, заметные с обратной стороны.", kind: "section" },
-  { id: "flicker", title: "Мерцание", description: "Визуальные материалы, подборки, фрагменты и малые формы.", kind: "section" },
-  { id: "residents", title: "Жители", description: "Интервью, голоса и фигуры культурной среды.", kind: "section" },
-  { id: "showcase", title: "Витрина", description: "Книги, обложки и предметы, которые появятся в магазине.", kind: "support" },
-  { id: "word", title: "Слово дня", description: "Ежедневная словарная находка с коротким комментарием.", kind: "micro" },
-  { id: "day", title: "Рубрика дня", description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.", kind: "micro" },
-  { id: "archive", title: "Архив", description: "Следы, документы и будущие материалы издания.", kind: "support" },
-  { id: "about", title: "О медиа", description: "Издание о литературе, визуальном искусстве и скрытых процессах.", kind: "support" },
-  { id: "contact", title: "Контакты", description: "hello@obratnaya.media\nЗапуск в процессе. Скоро здесь появятся ссылки.", kind: "support" },
+  { id: "signal", title: "Носорог", description: "", kind: "project" },
+  { id: "flicker", title: "Taylor Books", description: "", kind: "project" },
+  { id: "residents", title: "Обратная сторона — медиа", description: "", kind: "project" },
+  { id: "showcase", title: "Онлайн-книжный", description: "", kind: "project" },
+  { id: "word", title: "press me", description: "", kind: "project" },
+  { id: "day", title: "", description: "", kind: "placeholder" },
+  { id: "archive", title: "", description: "", kind: "placeholder" },
+  { id: "about", title: "", description: "", kind: "placeholder" },
+  { id: "contact", title: "", description: "", kind: "placeholder" },
 ];
 
 const edges = [
@@ -77,7 +75,7 @@ root.innerHTML = `
       <svg class="constellation-points" aria-hidden="true"></svg>
       <svg class="node-lines" aria-hidden="true"></svg>
     </nav>
-    <aside class="info-panel" aria-live="polite"${projectContentReady ? "" : " hidden"}>
+    <aside class="info-panel" aria-live="polite"${projectDetailsReady ? "" : " hidden"}>
       <span class="info-title"></span><span class="info-copy"></span>
     </aside>
   </main>`;
@@ -125,11 +123,11 @@ const nodeButtons = nodes.map((node, index) => {
   button.className = `node-label is-${node.kind}`;
   button.type = "button";
   button.dataset.id = node.id;
-  button.setAttribute("aria-label", projectContentReady ? node.title : `Проект ${index + 1}: название уточняется`);
-  button.innerHTML = `<span class="node-dot"></span>${projectContentReady ? `<span class="node-text">${node.title}</span>` : ""}`;
+  button.setAttribute("aria-label", node.title || `Проект ${index + 1}: название не указано`);
+  button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}`;
   ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
     if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
-    if (isCompact() && projectContentReady) document.body.classList.add("has-mobile-selection");
+    if (isCompact() && projectDetailsReady) document.body.classList.add("has-mobile-selection");
     setActiveNode(node.id);
   }));
   nodeLayer.append(button);
