@@ -226,32 +226,55 @@ function drawRoom(time, staticScene = false) {
 
   const wall = ctx.createLinearGradient(0, 0, 0, m.horizon);
   wall.addColorStop(0, "#fdfcf9");
-  wall.addColorStop(1, "#e5e1da");
+  wall.addColorStop(0.72, "#f8f6f2");
+  wall.addColorStop(1, "#eeebe5");
   ctx.fillStyle = wall;
   ctx.fillRect(0, 0, width, m.horizon + 2);
 
   const vanishingX = m.vanishingX;
-  ctx.fillStyle = "rgba(255,255,255,.14)";
+  const leftPlane = ctx.createLinearGradient(0, 0, vanishingX, 0);
+  leftPlane.addColorStop(0, "rgba(221,216,207,.09)");
+  leftPlane.addColorStop(0.7, "rgba(247,244,239,.025)");
+  leftPlane.addColorStop(1, "rgba(255,255,255,.075)");
+  ctx.fillStyle = leftPlane;
   ctx.beginPath();
   ctx.moveTo(0, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(0, height); ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,.12)";
+
+  const rightPlane = ctx.createLinearGradient(vanishingX, 0, width, 0);
+  rightPlane.addColorStop(0, "rgba(255,255,255,.075)");
+  rightPlane.addColorStop(0.72, "rgba(246,243,238,.02)");
+  rightPlane.addColorStop(1, "rgba(218,213,204,.07)");
+  ctx.fillStyle = rightPlane;
   ctx.beginPath();
   ctx.moveTo(width, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(width, height); ctx.closePath();
   ctx.fill();
 
   const floor = ctx.createLinearGradient(0, m.horizon, 0, height);
-  floor.addColorStop(0, "#e7e3dc");
-  floor.addColorStop(0.58, "#f3f0ea");
+  floor.addColorStop(0, "#ebe8e2");
+  floor.addColorStop(0.56, "#f5f2ed");
   floor.addColorStop(1, "#faf8f4");
   ctx.fillStyle = floor;
   ctx.fillRect(0, m.horizon, width, height - m.horizon);
 
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 1;
+  // A soft tonal crease replaces the hard drawn corner from the first 2D
+  // version. The old 3D room read as space because of light, not an outline.
+  const creaseWidth = Math.max(18, width * 0.022);
+  const cornerShade = ctx.createLinearGradient(vanishingX - creaseWidth, 0, vanishingX + creaseWidth, 0);
+  cornerShade.addColorStop(0, "rgba(93,86,76,0)");
+  cornerShade.addColorStop(0.46, "rgba(93,86,76,.018)");
+  cornerShade.addColorStop(0.5, "rgba(93,86,76,.052)");
+  cornerShade.addColorStop(0.54, "rgba(255,255,255,.055)");
+  cornerShade.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = cornerShade;
+  ctx.fillRect(vanishingX - creaseWidth, 0, creaseWidth * 2, m.horizon + 1);
+
+  ctx.strokeStyle = `rgba(64,59,52,${width < 640 ? 0.085 : 0.11})`;
+  ctx.lineWidth = width < 640 ? 0.55 : 0.7;
   ctx.beginPath(); ctx.moveTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.stroke();
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 1.55;
+
+  ctx.strokeStyle = `rgba(64,59,52,${width < 640 ? 0.12 : 0.16})`;
+  ctx.lineWidth = width < 640 ? 0.65 : 0.85;
   ctx.beginPath();
   ctx.moveTo(0, m.perspectiveEdgeY);
   ctx.lineTo(vanishingX, m.horizon);
@@ -282,10 +305,10 @@ function drawWallHatching(m, vanishingX) {
   ctx.beginPath();
   ctx.rect(0, 0, width, m.horizon);
   ctx.clip();
-  ctx.strokeStyle = `rgba(42,39,35,${width < 640 ? 0.13 : width < 1100 ? 0.155 : 0.18})`;
-  ctx.lineWidth = width < 640 ? 0.68 : 0.78;
+  ctx.strokeStyle = `rgba(58,54,48,${width < 640 ? 0.07 : width < 1100 ? 0.085 : 0.105})`;
+  ctx.lineWidth = width < 640 ? 0.55 : 0.64;
   ctx.lineCap = "round";
-  const hatchCount = width < 640 ? 54 : width < 1100 ? 70 : 88;
+  const hatchCount = width < 640 ? 38 : width < 1100 ? 50 : 64;
 
   const strokeOnWall = (startX, startY, endX, endY, side) => {
     ctx.save();
@@ -309,7 +332,7 @@ function drawWallHatching(m, vanishingX) {
         : vanishingX + localX * (width - vanishingX);
       const y = m.horizon * (0.16 + depth * 0.78);
       const distanceFromCorner = Math.abs(x - vanishingX) / halfWidth;
-      const length = 20 + distanceFromCorner * 46 + (seed % 5) * 3.5;
+      const length = 14 + distanceFromCorner * 38 + (seed % 5) * 2.8;
       const direction = side === 0 ? 1 : -1;
       const rise = (2.2 + depth * 4.4) * direction;
       const endX = x + length * direction;
@@ -319,7 +342,7 @@ function drawWallHatching(m, vanishingX) {
         : endX <= vanishingX + cornerGap;
       if (reachesCorner) continue;
 
-      ctx.globalAlpha = 0.62 + (seed % 4) * 0.1;
+      ctx.globalAlpha = 0.48 + (seed % 4) * 0.09;
       strokeOnWall(x, y, endX, endY, side);
 
       if (index % 7 === 0) {
