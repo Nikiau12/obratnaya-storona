@@ -369,6 +369,15 @@ h1 {
 }
 
 @media (max-width: 639px) {
+  .footer {
+    bottom: 88px;
+    left: 16px;
+    right: 16px;
+    gap: 0.18rem;
+    font-size: 0.7rem;
+    line-height: 1.15;
+  }
+
   .info-panel {
     display: none;
     top: 72vh;
@@ -414,10 +423,6 @@ h1 {
     font-size: 0.78rem;
   }
 
-  .has-mobile-selection .footer {
-    opacity: 0;
-    pointer-events: none;
-  }
 }
 
 @media (min-width: 640px) and (max-width: 1099px) {

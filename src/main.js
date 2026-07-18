@@ -1,11 +1,10 @@
-import * as THREE from "three";
 import "./styles.css";
 
 const objectSpecs = [
-  { type: "vangogh", label: "Картина Ван Гога", width: 0.72, height: 0.58, speed: 0.0068 },
-  { type: "writer", label: "Писатель", width: 0.52, height: 0.72, speed: 0.006 },
-  { type: "rodin", label: "Статуя Родена", width: 0.48, height: 0.76, speed: 0.0056 },
-  { type: "times", label: "The Times", width: 0.34, height: 0.78, speed: 0.0072 },
+  { type: "vangogh", width: 0.72, height: 0.58, duration: 14.2 },
+  { type: "writer", width: 0.52, height: 0.72, duration: 15.8 },
+  { type: "rodin", width: 0.48, height: 0.76, duration: 16.9 },
+  { type: "times", width: 0.58, height: 0.78, duration: 13.6 },
 ];
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -17,116 +16,39 @@ const assetUrls = {
 };
 
 const nodes = [
-  {
-    id: "signal",
-    title: "Сигнал",
-    description: "Лонгриды, рецензии и события, заметные с обратной стороны.",
-    ringAngle: 120,
-    kind: "section",
-  },
-  {
-    id: "flicker",
-    title: "Мерцание",
-    description: "Визуальные материалы, подборки, фрагменты и малые формы.",
-    ringAngle: 55,
-    kind: "section",
-  },
-  {
-    id: "residents",
-    title: "Жители",
-    description: "Интервью, голоса и фигуры культурной среды.",
-    apex: true,
-    kind: "section",
-  },
-  {
-    id: "showcase",
-    title: "Витрина",
-    description: "Книги, обложки и предметы, которые появятся в магазине.",
-    ringAngle: 20,
-    kind: "support",
-  },
-  {
-    id: "word",
-    title: "Слово дня",
-    description: "Ежедневная словарная находка с коротким комментарием.",
-    ringAngle: 90,
-    kind: "micro",
-  },
-  {
-    id: "day",
-    title: "Рубрика дня",
-    description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.",
-    kind: "micro",
-  },
-  {
-    id: "archive",
-    title: "Архив",
-    description: "Следы, документы и будущие материалы издания.",
-    ringAngle: 160,
-    kind: "support",
-  },
-  {
-    id: "about",
-    title: "О медиа",
-    description: "Издание о литературе, визуальном искусстве и скрытых процессах.",
-    kind: "support",
-  },
-  {
-    id: "contact",
-    title: "Контакты",
-    description: "Почта редакции и социальные каналы. Скоро здесь появятся ссылки.",
-    kind: "support",
-  },
+  { id: "signal", title: "Сигнал", description: "Лонгриды, рецензии и события, заметные с обратной стороны.", kind: "section" },
+  { id: "flicker", title: "Мерцание", description: "Визуальные материалы, подборки, фрагменты и малые формы.", kind: "section" },
+  { id: "residents", title: "Жители", description: "Интервью, голоса и фигуры культурной среды.", kind: "section" },
+  { id: "showcase", title: "Витрина", description: "Книги, обложки и предметы, которые появятся в магазине.", kind: "support" },
+  { id: "word", title: "Слово дня", description: "Ежедневная словарная находка с коротким комментарием.", kind: "micro" },
+  { id: "day", title: "Рубрика дня", description: "Глаз дня, солнце дня, бортовой журнал дня и другие вспышки.", kind: "micro" },
+  { id: "archive", title: "Архив", description: "Следы, документы и будущие материалы издания.", kind: "support" },
+  { id: "about", title: "О медиа", description: "Издание о литературе, визуальном искусстве и скрытых процессах.", kind: "support" },
+  { id: "contact", title: "Контакты", description: "Почта редакции и социальные каналы. Скоро здесь появятся ссылки.", kind: "support" },
 ];
 
 const edges = [
-  ["signal", "word"],
-  ["signal", "archive"],
-  ["signal", "residents"],
-  ["flicker", "showcase"],
-  ["flicker", "day"],
-  ["flicker", "about"],
-  ["residents", "word"],
-  ["residents", "contact"],
-  ["showcase", "about"],
-  ["day", "word"],
-  ["archive", "day"],
-  ["about", "contact"],
+  ["signal", "word"], ["signal", "archive"], ["signal", "residents"],
+  ["flicker", "showcase"], ["flicker", "day"], ["flicker", "about"],
+  ["residents", "word"], ["residents", "contact"], ["showcase", "about"],
+  ["day", "word"], ["archive", "day"], ["about", "contact"],
 ];
 
-const constellationLayout = {
-  residents: { angle: -90, radius: 1 },
-  contact: { angle: -50, radius: 0.8 },
-  flicker: { angle: -10, radius: 1 },
-  about: { angle: 30, radius: 0.8 },
-  showcase: { angle: 58, radius: 0.78 },
-  word: { angle: 112, radius: 0.66 },
-  day: { angle: 152, radius: 0.72 },
-  archive: { angle: 190, radius: 1 },
-  signal: { angle: 230, radius: 1 },
-};
-
-// Desktop coordinates inherited from the first orbit sketch. They create an
-// off-centre editorial network instead of a symmetrical cone around the hole.
-const firstDraftDesktopLayout = {
-  signal: { x: 0.25, y: 0.64 },
-  flicker: { x: 0.77, y: 0.57 },
-  residents: { x: 0.45, y: 0.385 },
-  showcase: { x: 0.67, y: 0.38 },
-  word: { x: 0.305, y: 0.47 },
-  day: { x: 0.55, y: 0.73 },
-  archive: { x: 0.19, y: 0.525 },
-  about: { x: 0.85, y: 0.485 },
+const desktopLayout = {
+  signal: { x: 0.25, y: 0.64 }, flicker: { x: 0.77, y: 0.57 },
+  residents: { x: 0.45, y: 0.385 }, showcase: { x: 0.67, y: 0.38 },
+  word: { x: 0.305, y: 0.47 }, day: { x: 0.55, y: 0.435 },
+  archive: { x: 0.19, y: 0.525 }, about: { x: 0.85, y: 0.485 },
   contact: { x: 0.59, y: 0.3 },
 };
 
-// The first draft had a second, non-interactive constellation around its
-// editorial nodes. These tiny points carry that graphic rhythm into the room.
-const decorativeClusters = [
-  { x: 0.48, y: 0.52, radiusX: 0.29, radiusY: 0.18, count: 32, phase: -1.15 },
-  { x: 0.29, y: 0.43, radiusX: 0.1, radiusY: 0.105, count: 12, phase: 0.45 },
-  { x: 0.72, y: 0.42, radiusX: 0.115, radiusY: 0.1, count: 14, phase: -0.62 },
-];
+const compactLayout = {
+  residents: { angle: -90, radius: 1 }, contact: { angle: -50, radius: 0.8 },
+  flicker: { angle: -10, radius: 1 }, about: { angle: 30, radius: 0.8 },
+  showcase: { angle: 58, radius: 0.78 }, word: { angle: 112, radius: 0.66 },
+  day: { angle: 152, radius: 0.72 }, archive: { angle: 190, radius: 1 },
+  signal: { angle: 230, radius: 1 },
+};
 
 const root = document.querySelector("#app");
 root.innerHTML = `
@@ -142,36 +64,47 @@ root.innerHTML = `
       <svg class="node-lines" aria-hidden="true"></svg>
     </nav>
     <aside class="info-panel" aria-live="polite">
-      <span class="info-title"></span>
-      <span class="info-copy"></span>
+      <span class="info-title"></span><span class="info-copy"></span>
     </aside>
     <footer class="footer">
       <a href="mailto:hello@obratnaya.media">hello@obratnaya.media</a>
       <span>запуск в процессе</span>
     </footer>
-  </main>
-`;
+  </main>`;
 
 const canvas = document.querySelector(".scene");
+const ctx = canvas.getContext("2d", { alpha: false });
 const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const constellationPoints = document.querySelector(".constellation-points");
 const nodeLines = document.querySelector(".node-lines");
 const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const pointer = new THREE.Vector2(0, 0);
-const mobileGraph = {
-  offsetX: 0,
-  offsetY: 0,
-  scale: 1,
-  pointers: new Map(),
-  pinchDistance: 0,
-  pinchScale: 1,
-  lastGestureAt: 0,
-};
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const images = Object.fromEntries(Object.entries(assetUrls).map(([key, url]) => {
+  const image = new Image();
+  image.decoding = "async";
+  image.src = url;
+  return [key, image];
+}));
+
+const pointer = { x: 0, y: 0, easedX: 0, easedY: 0 };
+const mobileGraph = { offsetX: 0, offsetY: 0, scale: 1, pointers: new Map(), pinchDistance: 0, pinchScale: 1, lastGestureAt: 0 };
+const particles = Array.from({ length: 74 }, (_, i) => ({
+  angle: i * 2.399, radius: 0.16 + (i % 17) * 0.035,
+  speed: 0.025 + (i % 6) * 0.007, size: 0.7 + (i % 4) * 0.55,
+  height: (i % 9) / 10,
+}));
+const fallingObjects = objectSpecs.map((spec, index) => ({
+  ...spec, index, offset: index * 0.23, direction: index % 2 ? -1 : 1,
+}));
+
+let width = 1;
+let height = 1;
+let ratio = 1;
 let activeNodeId = "signal";
-let decorativeLayoutKey = "";
+let startTime = performance.now();
+let lastFrame = startTime;
 
 const nodeButtons = nodes.map((node) => {
   const button = document.createElement("button");
@@ -179,635 +112,376 @@ const nodeButtons = nodes.map((node) => {
   button.type = "button";
   button.dataset.id = node.id;
   button.innerHTML = `<span class="node-dot"></span><span class="node-text">${node.title}</span>`;
-  button.addEventListener("pointerenter", () => {
-    revealCompactInfo();
+  ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
+    if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
+    if (isCompact()) document.body.classList.add("has-mobile-selection");
     setActiveNode(node.id);
-  });
-  button.addEventListener("focus", () => {
-    revealCompactInfo();
-    setActiveNode(node.id);
-  });
-  button.addEventListener("click", () => {
-    if (Date.now() - mobileGraph.lastGestureAt < 260) return;
-    revealCompactInfo();
-    setActiveNode(node.id);
-  });
+  }));
   nodeLayer.append(button);
   return button;
 });
 
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  alpha: false,
-  antialias: true,
-  failIfMajorPerformanceCaveat: false,
-  powerPreference: "default",
-});
-renderer.setClearColor(0xfbfaf7, 1);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-const textureLoader = new THREE.TextureLoader();
-const imageAssets = {
-  vangogh: loadAssetTexture(assetUrls.vangogh),
-  writer: loadAssetTexture(assetUrls.writer),
-  rodin: loadAssetTexture(assetUrls.rodin),
-  times: loadAssetTexture(assetUrls.times),
-};
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xfbfaf7);
-scene.fog = new THREE.FogExp2(0xfbfaf7, 0.04);
-
-const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
-camera.position.set(0, 3.15, 7.2);
-camera.lookAt(0, 0.68, -1.05);
-
-const ambient = new THREE.HemisphereLight(0xffffff, 0x8d877c, 1.85);
-scene.add(ambient);
-
-const keyLight = new THREE.PointLight(0xffffff, 22, 9, 1.5);
-keyLight.position.set(0, 3.65, 0.85);
-scene.add(keyLight);
-
-const rimLight = new THREE.DirectionalLight(0xffffff, 1.9);
-rimLight.position.set(-2.7, 4.2, 2.8);
-scene.add(rimLight);
-
-const room = createRoom();
-scene.add(room.group);
-
-const blackHole = createFloorHole();
-scene.add(blackHole.group);
-
-const fallingObjects = objectSpecs.map((spec, index) => {
-  const item = createFallingObject(spec, index);
-  scene.add(item.group);
-  return item;
-});
-
-const dust = Array.from({ length: 70 }, (_, index) => {
-  const particle = createDust(index);
-  scene.add(particle.mesh);
-  return particle;
-});
-
-let previousTime = 0;
-
 setActiveNode(activeNodeId);
 resize();
-window.addEventListener("resize", resize);
-window.addEventListener("pointermove", (event) => {
-  if (isConstellationViewport()) return;
-  pointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
-  pointer.y = -(event.clientY / window.innerHeight - 0.5) * 2;
+addEventListener("resize", resize);
+addEventListener("pointermove", (event) => {
+  if (!isCompact()) {
+    pointer.x = event.clientX / width - 0.5;
+    pointer.y = event.clientY / height - 0.5;
+  }
+  moveGraphGesture(event);
 });
-window.addEventListener("pointerdown", beginMobileGraphGesture);
-window.addEventListener("pointermove", moveMobileGraphGesture);
-window.addEventListener("pointerup", endMobileGraphGesture);
-window.addEventListener("pointercancel", endMobileGraphGesture);
-
-renderer.setAnimationLoop((time) => render(time * 0.001));
-
-function createRoom() {
-  const group = new THREE.Group();
-  const concrete = createConcreteTexture();
-
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(9.4, 8.2, 1, 1),
-    new THREE.MeshStandardMaterial({
-      map: concrete,
-      color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.18,
-      roughness: 0.92,
-      metalness: 0,
-    }),
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.set(0, -0.02, 0.15);
-  floor.receiveShadow = true;
-  group.add(floor);
-
-  const wallMaterial = new THREE.MeshBasicMaterial({
-    map: concrete,
-    color: 0xffffff,
-    side: THREE.DoubleSide,
-  });
-
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(5.7, 4.8), wallMaterial);
-  leftWall.position.set(-2.2, 2.25, -3.0);
-  leftWall.rotation.y = Math.PI / 4;
-  group.add(leftWall);
-
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(5.7, 4.8), wallMaterial);
-  rightWall.position.set(2.2, 2.25, -3.0);
-  rightWall.rotation.y = -Math.PI / 4;
-  group.add(rightWall);
-
-  const seam = new THREE.Mesh(
-    new THREE.BoxGeometry(0.018, 4.7, 0.018),
-    new THREE.MeshBasicMaterial({ color: 0xcfc9bf, transparent: true, opacity: 0.22 }),
-  );
-  seam.position.set(0, 2.2, -3.0);
-  group.add(seam);
-
-  return { group };
-}
-
-function createFloorHole() {
-  const group = new THREE.Group();
-
-  const outerShadow = new THREE.Mesh(
-    new THREE.RingGeometry(1.22, 2.08, 320),
-    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, side: THREE.DoubleSide }),
-  );
-  outerShadow.rotation.x = -Math.PI / 2;
-  outerShadow.scale.set(1.35, 0.7, 1);
-  outerShadow.position.set(0, 0.012, 0.55);
-  group.add(outerShadow);
-
-  const rim = new THREE.Mesh(
-    new THREE.RingGeometry(1.28, 1.44, 320),
-    new THREE.MeshBasicMaterial({ color: 0x3f3b35, transparent: true, opacity: 0.26, side: THREE.DoubleSide }),
-  );
-  rim.rotation.x = -Math.PI / 2;
-  rim.scale.set(1.36, 0.72, 1);
-  rim.position.set(0, 0.018, 0.55);
-  rim.renderOrder = 12;
-  rim.material.depthTest = false;
-  group.add(rim);
-
-  const disc = new THREE.Mesh(
-    new THREE.CircleGeometry(1.32, 384),
-    new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide }),
-  );
-  disc.rotation.x = -Math.PI / 2;
-  disc.scale.set(1.38, 0.72, 1);
-  disc.position.set(0, 0.022, 0.55);
-  disc.renderOrder = 11;
-  disc.material.depthTest = false;
-  group.add(disc);
-
-  return { group, disc, rim, outerShadow };
-}
-
-function createFallingObject(spec, index) {
-  const body = createObjectModel(spec.type);
-  body.scale.setScalar(Math.max(spec.width, spec.height));
-
-  const shadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.38, 48),
-    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 }),
-  );
-  shadow.rotation.x = -Math.PI / 2;
-
-  const group = new THREE.Group();
-  group.add(body);
-  group.add(shadow);
-
-  const item = {
-    group,
-    body,
-    shadow,
-    spec,
-    index,
-    baseScale: Math.max(spec.width, spec.height),
-    fallSpeed: spec.speed,
-    spin: index % 2 === 0 ? 1 : -1,
-    phase: index * 1.57,
-    startDelay: index * 0.5,
-  };
-  resetObject(item, index * 0.72);
-  return item;
-}
-
-function createObjectModel(type) {
-  const group = new THREE.Group();
-  const dark = createMaterial(0x111111, 0.74);
-  const graphite = createMaterial(0x4b4944, 0.88);
-  const paper = createMaterial(0xded8cc, 0.92);
-
-  if (type === "vangogh") {
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.62, 0.08), graphite);
-    const side = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.58, 0.14), dark);
-    const painting = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.72, 0.47),
-      createImageMaterial(imageAssets.vangogh),
-    );
-    side.position.set(0.44, 0, -0.015);
-    painting.position.z = 0.052;
-    group.add(frame, side, painting);
-  }
-
-  if (type === "writer") {
-    const card = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.72, 0.055), paper);
-    const portrait = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.44, 0.58),
-      createImageMaterial(imageAssets.writer),
-    );
-    const side = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.72, 0.09), dark);
-    portrait.position.set(0, 0.02, 0.039);
-    side.position.set(0.285, 0, -0.005);
-    group.add(card, side, portrait);
-  }
-
-  if (type === "rodin") {
-    const silhouette = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.46, 0.92),
-      createCutoutMaterial(imageAssets.rodin),
-    );
-    const depth = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.46, 0.92),
-      new THREE.MeshBasicMaterial({
-        map: imageAssets.rodin,
-        color: 0x000000,
-        transparent: true,
-        opacity: 0.28,
-        alphaTest: 0.08,
-        side: THREE.DoubleSide,
-      }),
-    );
-    depth.position.set(0.035, -0.025, -0.035);
-    group.add(depth, silhouette);
-  }
-
-  if (type === "times") {
-    const newspaperTexture = createTimesTexture();
-    const newspaperMaterial = createImageMaterial(newspaperTexture);
-    const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.74, 0.035), paper);
-    const masthead = new THREE.Mesh(new THREE.PlaneGeometry(0.31, 0.62), newspaperMaterial);
-    const backMasthead = masthead.clone();
-    masthead.position.set(0, 0, 0.03);
-    backMasthead.position.set(0, 0, -0.03);
-    backMasthead.rotation.y = Math.PI;
-    group.add(sheet, masthead, backMasthead);
-  }
-
-  group.traverse((child) => {
-    if (child.isMesh) {
-      child.castShadow = false;
-      child.receiveShadow = false;
-    }
-  });
-  return group;
-}
-
-function loadAssetTexture(path) {
-  const texture = textureLoader.load(path);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  return texture;
-}
-
-function createImageMaterial(texture) {
-  return new THREE.MeshStandardMaterial({
-    map: texture,
-    color: 0xf0e8dc,
-    emissive: 0x181511,
-    emissiveIntensity: 0.16,
-    roughness: 0.84,
-    metalness: 0,
-    side: THREE.DoubleSide,
-  });
-}
-
-function createCutoutMaterial(texture) {
-  return new THREE.MeshStandardMaterial({
-    map: texture,
-    color: 0xf0e8dc,
-    emissive: 0x15120e,
-    emissiveIntensity: 0.14,
-    roughness: 0.86,
-    metalness: 0,
-    transparent: true,
-    alphaTest: 0.08,
-    side: THREE.DoubleSide,
-  });
-}
-
-function createTimesTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 768;
-  canvas.height = 1024;
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#e7dfd2";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "#111111";
-  ctx.textAlign = "center";
-  ctx.font = "700 92px Georgia, Times New Roman, serif";
-  ctx.fillText("THE TIMES", canvas.width / 2, 126);
-
-  ctx.strokeStyle = "#111111";
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(80, 158);
-  ctx.lineTo(canvas.width - 80, 158);
-  ctx.moveTo(80, 184);
-  ctx.lineTo(canvas.width - 80, 184);
-  ctx.stroke();
-
-  ctx.font = "500 34px Georgia, Times New Roman, serif";
-  ctx.fillText("CULTURE / BOOKS / ART", canvas.width / 2, 236);
-
-  ctx.fillStyle = "#1a1a1a";
-  const columns = [92, 292, 492];
-  for (const [columnIndex, x] of columns.entries()) {
-    for (let i = 0; i < 14; i += 1) {
-      const width = 132 + ((i + columnIndex) % 4) * 18;
-      ctx.fillRect(x, 296 + i * 39, width, 9);
-    }
-  }
-
-  ctx.fillStyle = "#b5ada1";
-  ctx.fillRect(292, 618, 176, 138);
-  ctx.fillStyle = "#111111";
-  ctx.beginPath();
-  ctx.ellipse(380, 688, 48, 38, -0.22, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = "rgba(0,0,0,0.28)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(38, 38, canvas.width - 76, canvas.height - 76);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  return texture;
-}
-
-function createMaterial(color, roughness) {
-  return new THREE.MeshStandardMaterial({
-    color,
-    roughness,
-    metalness: 0,
-    transparent: true,
-    opacity: 1,
-    side: THREE.DoubleSide,
-  });
-}
-
-function resetObject(item, delay = 0) {
-  const startHeights = [4.45, 3.85, 3.25, 2.65, 4.15];
-  item.y = startHeights[item.index] + (delay % 0.55);
-  item.angle = item.phase + delay * 0.8;
-  item.radius = 2.65 + (item.index % 3) * 0.46;
-  item.orbitSpeed = 0.009 + item.index * 0.0018;
-  item.x = Math.cos(item.angle) * item.radius;
-  item.z = 0.55 + Math.sin(item.angle) * item.radius * 0.48;
-  item.roll = item.phase;
-  item.tilt = (item.index % 2 === 0 ? -1 : 1) * (0.28 + item.index * 0.03);
-  item.body.rotation.set(0, 0, item.roll);
-  item.group.visible = false;
-}
-
-function createDust(index) {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.011 + (index % 4) * 0.004, 8, 8),
-    new THREE.MeshBasicMaterial({ color: 0x5c564d, transparent: true, opacity: 0.12 }),
-  );
-  return {
-    mesh,
-    angle: index * 1.9,
-    radius: 0.75 + (index % 13) * 0.12,
-    y: 0.12 + (index % 9) * 0.22,
-    speed: 0.16 + (index % 5) * 0.035,
-  };
-}
-
-function render(time) {
-  const delta = previousTime ? Math.min(time - previousTime, 0.05) : 0.016;
-  previousTime = time;
-  const motion = (prefersReducedMotion ? 0.18 : 1) * delta * 60;
-  const cameraTargetX = pointer.x * 0.18;
-  camera.position.x += (cameraTargetX - camera.position.x) * 0.035;
-  camera.position.y += (3.15 + pointer.y * 0.08 - camera.position.y) * 0.035;
-  camera.lookAt(0, 0.72, -0.98);
-
-  blackHole.group.position.x = Math.sin(time * 0.32) * 0.025;
-  blackHole.rim.material.opacity = 0.19 + Math.sin(time * 1.1) * 0.035;
-  blackHole.outerShadow.material.opacity = 0.22 + Math.sin(time * 0.7) * 0.04;
-
-  fallingObjects.forEach((item) => {
-    item.group.visible = true;
-    const horizon = THREE.MathUtils.clamp(1 - item.radius / 1.08, 0, 1);
-    const horizonEase = horizon * horizon * (3 - 2 * horizon);
-
-    item.y -= item.fallSpeed * (1 + horizonEase * 1.8) * motion;
-    item.angle += item.orbitSpeed * (1 + horizonEase * 3.4) * motion;
-    item.radius -= (0.0017 + item.fallSpeed * 0.11 + horizonEase * 0.012) * motion;
-    item.x = Math.cos(item.angle) * item.radius + Math.sin(time * 0.62 + item.phase) * 0.07;
-    item.z = 0.55 + Math.sin(item.angle) * item.radius * 0.58;
-
-    const distanceToHole = Math.hypot(item.x, item.z - 0.55);
-    const swallow = THREE.MathUtils.clamp(1 - distanceToHole / 1.12, 0, 1);
-    const fallProgress = THREE.MathUtils.clamp(1 - (item.y - 0.18) / 5.2, 0, 1);
-    const sink = Math.max(swallow, fallProgress * 0.36, horizonEase);
-    const submerge = THREE.MathUtils.smoothstep(sink, 0.62, 1);
-    const tangentStretch = 1 + submerge * 1.45;
-    const radialSqueeze = 1 - submerge * 0.72;
-
-    item.group.position.set(item.x, item.y - submerge * 0.5, item.z);
-    item.body.lookAt(camera.position);
-    item.body.rotateZ(item.roll + submerge * item.spin * 0.45);
-    item.body.rotateX(item.tilt * 0.12);
-    item.roll += (0.012 + sink * 0.046 + submerge * 0.045) * item.spin * motion;
-
-    const scale = 1 - sink * 0.44;
-    item.body.scale.set(
-      item.baseScale * scale * tangentStretch,
-      item.baseScale * scale * radialSqueeze,
-      item.baseScale * (1 - submerge * 0.35),
-    );
-    const altitudeFade = THREE.MathUtils.clamp((item.y - 0.08) / 1.1, 0, 1);
-    const eventFade = 1 - THREE.MathUtils.smoothstep(sink, 0.78, 1);
-    setModelMaterialState(item.body, altitudeFade * eventFade, submerge);
-
-    item.shadow.position.set(0, -item.y + 0.028, 0);
-    item.shadow.scale.set(
-      THREE.MathUtils.clamp(1.2 - item.y * 0.14, 0.2, 1.15) * (1 + submerge * 0.8),
-      THREE.MathUtils.clamp(1.2 - item.y * 0.14, 0.2, 1.15) * (1 - submerge * 0.4),
-      1,
-    );
-    item.shadow.material.opacity = THREE.MathUtils.clamp(0.34 - item.y * 0.04, 0, 0.22) * (1 - submerge * 0.8);
-
-    if (item.y < -0.4 || item.radius < 0.18 || distanceToHole < 0.2 || eventFade <= 0.02) {
-      resetObject(item, 0.4 + item.index * 0.1);
-    }
-  });
-
-  dust.forEach((particle) => {
-    particle.angle += particle.speed * 0.01 * motion;
-    particle.radius -= 0.0015 * motion;
-    if (particle.radius < 0.42) {
-      particle.radius = 2.2;
-      particle.y = 0.18 + ((particle.angle * 10) % 1.8);
-    }
-    particle.mesh.position.set(
-      Math.cos(particle.angle) * particle.radius,
-      particle.y,
-      0.55 + Math.sin(particle.angle) * particle.radius * 0.45,
-    );
-    particle.mesh.material.opacity = THREE.MathUtils.clamp((particle.radius - 0.42) / 2.2, 0, 1) * 0.16;
-  });
-
-  layoutGraph();
-  renderer.render(scene, camera);
-}
-
-function setModelMaterialState(model, opacity, horizon) {
-  model.traverse((child) => {
-    if (child.material) {
-      if (!child.material.userData.baseColor && child.material.color) {
-        child.material.userData.baseColor = child.material.color.clone();
-      }
-      if (child.material.emissive && child.material.userData.baseEmissiveIntensity === undefined) {
-        child.material.userData.baseEmissiveIntensity = child.material.emissiveIntensity || 0;
-      }
-      child.material.opacity = opacity;
-      if (child.material.color) {
-        const baseColor = child.material.userData.baseColor;
-        const dim = 1 - horizon * 0.58;
-        child.material.color.setRGB(
-          baseColor.r * dim,
-          baseColor.g * dim * (1 - horizon * 0.16),
-          baseColor.b * dim * (1 - horizon * 0.28),
-        );
-      }
-      if (child.material.emissive) {
-        child.material.emissiveIntensity = Math.max(
-          0,
-          child.material.userData.baseEmissiveIntensity * (1 - horizon * 0.9),
-        );
-      }
-    }
-  });
-}
+addEventListener("pointerdown", beginGraphGesture);
+addEventListener("pointerup", endGraphGesture);
+addEventListener("pointercancel", endGraphGesture);
+requestAnimationFrame(render);
 
 function resize() {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  renderer.setPixelRatio(getSafePixelRatio(width, height));
-  renderer.setSize(width, height, true);
-  camera.aspect = width / height;
-  camera.fov = width < 720 ? 52 : 42;
-  camera.position.z = width < 720 ? 7.8 : 7.2;
-  camera.updateProjectionMatrix();
+  width = innerWidth;
+  height = innerHeight;
+  const budget = width < 720 ? 5_000_000 : 10_000_000;
+  ratio = Math.max(1, Math.min(devicePixelRatio || 1, 2, Math.sqrt(budget / (width * height))));
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
   layoutGraph();
 }
 
-function isConstellationViewport() {
-  return window.innerWidth < 1100;
+function render(now) {
+  const elapsed = (now - startTime) / 1000;
+  const delta = Math.min((now - lastFrame) / 1000, 0.05);
+  lastFrame = now;
+  pointer.easedX += (pointer.x - pointer.easedX) * Math.min(1, delta * 3.3);
+  pointer.easedY += (pointer.y - pointer.easedY) * Math.min(1, delta * 3.3);
+
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  drawRoom(elapsed);
+  drawScene(elapsed);
+  requestAnimationFrame(render);
 }
 
-function revealCompactInfo() {
-  if (isConstellationViewport()) document.body.classList.add("has-mobile-selection");
+function sceneMetrics() {
+  const mobile = width < 640;
+  return {
+    horizon: height * (mobile ? 0.52 : 0.47) + pointer.easedY * 8,
+    holeX: width * 0.5 + pointer.easedX * 20,
+    holeY: height * (mobile ? 0.665 : 0.69),
+    holeW: Math.min(width * (mobile ? 0.42 : 0.25), height * 0.31),
+  };
 }
 
-function isPhoneViewport() {
-  return window.innerWidth < 640;
-}
+function drawRoom(time) {
+  const m = sceneMetrics();
+  ctx.fillStyle = "#fbfaf7";
+  ctx.fillRect(0, 0, width, height);
 
-function getVisibleGraphNodes() {
-  return nodes;
-}
+  const wall = ctx.createLinearGradient(0, 0, 0, m.horizon);
+  wall.addColorStop(0, "#fdfcf9");
+  wall.addColorStop(1, "#e5e1da");
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, width, m.horizon + 2);
 
-function isMobileGraphGesture(event) {
-  if (!isConstellationViewport() || event.pointerType !== "touch") return false;
-  const zone = getConstellationZone(window.innerWidth, window.innerHeight);
-  const padding = zone.maxRadius * 0.4;
-  return event.clientY > zone.safeTop - padding && event.clientY < zone.safeBottom + padding;
-}
+  const vanishingX = width * 0.5 + pointer.easedX * 25;
+  ctx.fillStyle = "rgba(255,255,255,.14)";
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(0, height); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.12)";
+  ctx.beginPath();
+  ctx.moveTo(width, 0); ctx.lineTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.lineTo(width, height); ctx.closePath();
+  ctx.fill();
 
-function beginMobileGraphGesture(event) {
-  if (!isMobileGraphGesture(event)) return;
+  const floor = ctx.createLinearGradient(0, m.horizon, 0, height);
+  floor.addColorStop(0, "#e7e3dc");
+  floor.addColorStop(0.58, "#f3f0ea");
+  floor.addColorStop(1, "#faf8f4");
+  ctx.fillStyle = floor;
+  ctx.fillRect(0, m.horizon, width, height - m.horizon);
 
-  mobileGraph.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-  if (mobileGraph.pointers.size === 2) {
-    const [first, second] = [...mobileGraph.pointers.values()];
-    mobileGraph.pinchDistance = Math.hypot(second.x - first.x, second.y - first.y);
-    mobileGraph.pinchScale = mobileGraph.scale;
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(vanishingX, 0); ctx.lineTo(vanishingX, m.horizon); ctx.stroke();
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 1.55;
+  const perspectiveEdgeY = m.horizon + (height - m.horizon) * 0.16;
+  ctx.beginPath();
+  ctx.moveTo(0, perspectiveEdgeY);
+  ctx.lineTo(vanishingX, m.horizon);
+  ctx.lineTo(width, perspectiveEdgeY);
+  ctx.stroke();
+
+  const glow = ctx.createRadialGradient(width * 0.5, height * 0.3, 0, width * 0.5, height * 0.3, Math.max(width, height) * 0.7);
+  glow.addColorStop(0, "rgba(255,255,255,.3)");
+  glow.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+
+  drawWallHatching(m, vanishingX);
+
+  // Fine deterministic grain keeps the paper/concrete character without a GPU texture.
+  ctx.fillStyle = "rgba(38,34,29,.022)";
+  for (let i = 0; i < 130; i += 1) {
+    const x = (i * 197 + 37) % Math.max(1, width);
+    const y = (i * 83 + Math.floor(time * 0.05)) % Math.max(1, height);
+    ctx.fillRect(x, y, 1, 1);
   }
 }
 
-function moveMobileGraphGesture(event) {
-  const previous = mobileGraph.pointers.get(event.pointerId);
-  if (!previous) return;
+function drawWallHatching(m, vanishingX) {
+  const halfWidth = Math.max(1, width * 0.5);
+  const cornerGap = Math.max(30, width * 0.028);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, width, m.horizon);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(42,39,35,.18)";
+  ctx.lineWidth = 0.78;
+  ctx.lineCap = "round";
 
-  const next = { x: event.clientX, y: event.clientY };
-  mobileGraph.pointers.set(event.pointerId, next);
+  const strokeOnWall = (startX, startY, endX, endY, side) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(side === 0 ? 0 : vanishingX, 0, side === 0 ? vanishingX : width - vanishingX, m.horizon);
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.restore();
+  };
 
-  if (mobileGraph.pointers.size === 1) {
-    if (mobileGraph.scale <= 1) return;
+  for (let side = 0; side < 2; side += 1) {
+    for (let index = 0; index < 88; index += 1) {
+      const seed = index + side * 41;
+      const localX = ((seed * 83 + 29) % 997) / 997;
+      const depth = ((seed * 47 + 13) % 991) / 991;
+      const x = side === 0
+        ? localX * vanishingX
+        : vanishingX + localX * (width - vanishingX);
+      const y = m.horizon * (0.16 + depth * 0.78);
+      const distanceFromCorner = Math.abs(x - vanishingX) / halfWidth;
+      const length = 20 + distanceFromCorner * 46 + (seed % 5) * 3.5;
+      const direction = side === 0 ? 1 : -1;
+      const rise = (2.2 + depth * 4.4) * direction;
+      const endX = x + length * direction;
+      const endY = y - rise;
+      const reachesCorner = side === 0
+        ? endX >= vanishingX - cornerGap
+        : endX <= vanishingX + cornerGap;
+      if (reachesCorner) continue;
 
-    const deltaX = next.x - previous.x;
-    const deltaY = next.y - previous.y;
-    if (Math.hypot(deltaX, deltaY) < 1) return;
+      ctx.globalAlpha = 0.62 + (seed % 4) * 0.1;
+      strokeOnWall(x, y, endX, endY, side);
 
-    const zone = getConstellationZone(window.innerWidth, window.innerHeight);
-    const panLimit = zone.maxRadius * (mobileGraph.scale - 0.8);
-    mobileGraph.offsetX = clampMobileGraphOffset(mobileGraph.offsetX + deltaX, panLimit);
-    // Keep the vertical pan tighter than horizontal so a drag can never pull
-    // the cluster up into the title or down into the black hole.
-    mobileGraph.offsetY = clampMobileGraphOffset(mobileGraph.offsetY + deltaY, panLimit * 0.55);
-  } else {
-    const [first, second] = [...mobileGraph.pointers.values()];
-    const distance = Math.hypot(second.x - first.x, second.y - first.y);
-    if (mobileGraph.pinchDistance) {
-      mobileGraph.scale = THREE.MathUtils.clamp(
-        mobileGraph.pinchScale * (distance / mobileGraph.pinchDistance),
-        1,
-        2.4,
-      );
-      if (mobileGraph.scale < 1.04) {
-        mobileGraph.scale = 1;
-        mobileGraph.offsetX = 0;
-        mobileGraph.offsetY = 0;
+      if (index % 7 === 0) {
+        ctx.globalAlpha *= 0.58;
+        strokeOnWall(
+          x + 3 * direction,
+          y + 3,
+          x + (length * 0.68 + 3) * direction,
+          y + 3 - rise * 0.68,
+          side,
+        );
       }
     }
   }
-
-  mobileGraph.lastGestureAt = Date.now();
-  layoutGraph();
-  if (mobileGraph.scale > 1) activateNearestMobileNode();
+  ctx.restore();
 }
 
-function endMobileGraphGesture(event) {
-  if (!mobileGraph.pointers.delete(event.pointerId)) return;
-  if (mobileGraph.pointers.size < 2) mobileGraph.pinchDistance = 0;
-  if (!mobileGraph.pointers.size && mobileGraph.scale < 1.04) {
-    mobileGraph.scale = 1;
-    mobileGraph.offsetX = 0;
-    mobileGraph.offsetY = 0;
-    layoutGraph();
+function drawScene(time) {
+  const m = sceneMetrics();
+  const motionTime = reduceMotion ? time * 0.18 : time;
+  drawHole(m, motionTime);
+
+  const states = fallingObjects.map((item) => getObjectState(item, motionTime, m));
+  states.filter((state) => state.behind).sort((a, b) => a.y - b.y).forEach(drawObject);
+  drawDust(motionTime, m, true);
+  states.filter((state) => !state.behind).sort((a, b) => a.y - b.y).forEach(drawObject);
+  drawDust(motionTime, m, false);
+}
+
+function drawHole(m, time) {
+  const w = m.holeW;
+  const h = w * 0.34;
+  const breath = Math.sin(time * (Math.PI * 2 / 5.2));
+  const flowSignal = (
+    breath * 0.78
+    + Math.sin(time * 1.73 + 1.4) * 0.14
+    + Math.sin(time * 2.37 + 3.1) * 0.08
+  );
+  const horizons = [
+    { scale: 1.78, alpha: 0.035, line: 0.13, phase: 0.4 },
+    { scale: 1.52, alpha: 0.05, line: 0.12, phase: 1.7 },
+    { scale: 1.3, alpha: 0.07, line: 0.095, phase: 2.8 },
+    { scale: 1.16, alpha: 0.075, line: 0.052, phase: 4.1 },
+  ];
+  ctx.save();
+  ctx.filter = `blur(${Math.max(1.5, w * 0.008)}px)`;
+  horizons.forEach((horizon) => {
+    const densityWave = Math.sin(time * 0.9 + horizon.phase) * 0.008;
+    const flowScale = 1 + breath * 0.035 + flowSignal * 0.008 + densityWave;
+    const flowAlpha = horizon.alpha * (1 + flowSignal * 0.48);
+    ctx.strokeStyle = `rgba(70,67,62,${flowAlpha})`;
+    ctx.lineWidth = Math.max(2, w * horizon.line * (1 + flowSignal * 0.16));
+    ellipse(
+      m.holeX,
+      m.holeY + w * (horizon.scale - 1) * 0.012,
+      w * horizon.scale * flowScale,
+      h * horizon.scale * flowScale,
+      true,
+    );
+  });
+  ctx.restore();
+
+  // This is an apparent change of the optical shadow, not a literal expansion
+  // of the event horizon. Keeping it small makes the breathing readable while
+  // the larger wave remains in the variable accretion flow.
+  const opticalW = w * (1 + breath * 0.018);
+  const opticalH = opticalW * 0.34;
+  const shadow = ctx.createRadialGradient(m.holeX, m.holeY, opticalW * 0.12, m.holeX, m.holeY, opticalW * 0.74);
+  shadow.addColorStop(0, "rgba(0,0,0,.96)");
+  shadow.addColorStop(0.58, "rgba(0,0,0,.82)");
+  shadow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.save();
+  ctx.translate(m.holeX, m.holeY);
+  ctx.scale(1.42, 0.68);
+  ctx.fillStyle = shadow;
+  ctx.beginPath(); ctx.arc(0, 0, opticalW * 0.78, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = "#000";
+  ellipse(m.holeX, m.holeY, opticalW * 0.68, opticalH * 0.68);
+}
+
+function getObjectState(item, time, m) {
+  const cycle = ((time / item.duration + item.offset) % 1 + 1) % 1;
+  // A Newtonian t² acceleration is smoothly capped by an exponential term.
+  // To a distant observer this makes the final approach asymptotic: the body
+  // appears to freeze just outside the event horizon instead of crossing it.
+  const observedFall = 1 - Math.exp(-5 * cycle * cycle);
+  const horizonRadius = m.holeW * 0.71;
+  const radius = horizonRadius + m.holeW * 1.18 * Math.exp(-5 * cycle * cycle);
+  const orbitalPhase = 1 - Math.exp(-3.8 * cycle * cycle);
+  const angle = item.index * 1.62 + item.direction * orbitalPhase * Math.PI * 3.7;
+  // Every new cycle starts above the viewport, so objects enter the room from
+  // the top instead of materialising halfway down a wall.
+  const altitude = height * 0.76 * (1 - observedFall);
+  const groundX = m.holeX + Math.cos(angle) * radius;
+  const groundY = m.holeY + Math.sin(angle) * radius * 0.32;
+  const x = groundX + pointer.easedX * (20 + item.index * 3);
+  const y = groundY - altitude;
+  const redshift = smoothstep(0.9, 0.997, observedFall);
+  const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
+  return {
+    item, cycle, redshift, behind: Math.sin(angle) < 0,
+    x, y,
+    groundX, groundY, angle,
+    rotation: tumble,
+    scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.72 : 1),
+    alpha: Math.exp(-4.8 * redshift * redshift),
+  };
+}
+
+function drawObject(state) {
+  const { item, x, y, groundX, groundY, rotation, scale, redshift, alpha } = state;
+  if (alpha <= 0.01) return;
+  const base = Math.min(width, height) * 0.19;
+  const objectW = base * item.width * scale;
+  const objectH = base * item.height * scale;
+
+  ctx.save();
+  ctx.globalAlpha = alpha * (0.1 + state.cycle * 0.9);
+  ctx.fillStyle = "rgba(0,0,0,.18)";
+  ctx.filter = "blur(5px)";
+  ellipse(groundX, groundY + 2, objectW * 0.42, objectH * 0.1);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha = alpha;
+  ctx.filter = `brightness(${1 - redshift * 0.68}) sepia(${redshift * 0.78}) saturate(${1 + redshift * 0.5})`;
+  ctx.shadowColor = "rgba(0,0,0,.22)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 5;
+  ctx.shadowOffsetY = 7;
+  drawSprite(item.type, objectW, objectH);
+  ctx.restore();
+}
+
+function drawSprite(type, w, h) {
+  const image = images[type];
+  if (type === "vangogh") {
+    ctx.fillStyle = "#4d4942"; ctx.fillRect(-w * 0.57, -h * 0.58, w * 1.14, h * 1.16);
+    ctx.fillStyle = "#111"; ctx.fillRect(w * 0.48, -h * 0.54, w * 0.18, h * 1.14);
+    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.46, -h * 0.45, w * 0.92, h * 0.9);
+  } else if (type === "writer") {
+    ctx.fillStyle = "#ded8cc"; ctx.fillRect(-w * 0.56, -h * 0.55, w * 1.12, h * 1.1);
+    ctx.fillStyle = "#24211d"; ctx.fillRect(w * 0.48, -h * 0.53, w * 0.17, h * 1.1);
+    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.46, -h * 0.45, w * 0.92, h * 0.9);
+  } else if (type === "rodin") {
+    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.62, -h * 0.62, w * 1.24, h * 1.24);
+  } else if (type === "times") {
+    ctx.fillStyle = "#e7dfd2"; ctx.fillRect(-w * 0.6, -h * 0.56, w * 1.2, h * 1.12);
+    ctx.strokeStyle = "rgba(0,0,0,.28)"; ctx.lineWidth = 1; ctx.strokeRect(-w * 0.6, -h * 0.56, w * 1.2, h * 1.12);
+
+    ctx.fillStyle = "#111";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `700 ${Math.max(5, h * 0.095)}px Georgia, "Times New Roman", serif`;
+    ctx.fillText("THE TIMES", 0, -h * 0.42, w * 0.98);
+    if (image.complete && image.naturalWidth) {
+      ctx.globalAlpha *= 0.82;
+      ctx.drawImage(image, -w * 0.18, -h * 0.49, w * 0.36, h * 0.07);
+      ctx.globalAlpha /= 0.82;
+    }
+
+    ctx.strokeStyle = "rgba(0,0,0,.72)";
+    ctx.lineWidth = Math.max(0.6, h * 0.008);
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.51, -h * 0.345); ctx.lineTo(w * 0.51, -h * 0.345);
+    ctx.moveTo(-w * 0.51, -h * 0.31); ctx.lineTo(w * 0.51, -h * 0.31);
+    ctx.stroke();
+
+    ctx.font = `600 ${Math.max(4, h * 0.045)}px Georgia, "Times New Roman", serif`;
+    ctx.fillText("CULTURE  ·  BOOKS  ·  ART", 0, -h * 0.255, w * 0.96);
+    ctx.fillStyle = "rgba(17,17,17,.88)";
+    const columns = [-0.43, -0.13, 0.17].map((position) => position * w);
+    columns.forEach((columnX, columnIndex) => {
+      for (let row = 0; row < 12; row += 1) {
+        if (columnIndex === 1 && row >= 3 && row <= 7) continue;
+        const lineW = w * (0.2 + ((row + columnIndex) % 3) * 0.025);
+        ctx.fillRect(columnX, -h * 0.19 + row * h * 0.052, lineW, Math.max(0.7, h * 0.008));
+      }
+    });
+    ctx.fillStyle = "#aaa39a";
+    ctx.fillRect(-w * 0.095, -h * 0.035, w * 0.25, h * 0.25);
+    ctx.fillStyle = "#292724";
+    ctx.beginPath(); ctx.ellipse(w * 0.03, h * 0.09, w * 0.065, h * 0.075, -0.18, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, -h * 0.55); ctx.lineTo(0, h * 0.55); ctx.stroke();
   }
 }
 
-function clampMobileGraphOffset(value, limit) {
-  return THREE.MathUtils.clamp(value, -limit, limit);
+function drawDust(time, m, behind) {
+  ctx.fillStyle = "rgba(62,57,50,.18)";
+  particles.forEach((particle, index) => {
+    const angle = particle.angle + time * particle.speed;
+    const radiusPhase = ((time * 0.016 + index / particles.length) % 1);
+    const radius = m.holeW * (1.7 - radiusPhase * 1.45);
+    if ((Math.sin(angle) < 0) !== behind) return;
+    const x = m.holeX + Math.cos(angle) * radius;
+    const y = m.holeY + Math.sin(angle) * radius * 0.31 - (1 - radiusPhase) * particle.height * height * 0.16;
+    ctx.globalAlpha = (1 - radiusPhase) * 0.52;
+    ctx.beginPath(); ctx.arc(x, y, particle.size, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
 }
 
-function activateNearestMobileNode() {
-  const zone = getConstellationZone(window.innerWidth, window.innerHeight);
-  const focusX = window.innerWidth * 0.5;
-  const focusY = zone.focusY;
-  const nearest = getVisibleGraphNodes().reduce((closest, node) => {
-    const position = getGraphPosition(node, window.innerWidth, window.innerHeight);
-    const distance = Math.hypot(position.x - focusX, position.y - focusY);
-    return distance < closest.distance ? { node, distance } : closest;
-  }, { node: null, distance: Infinity });
-
-  if (nearest.node && nearest.node.id !== activeNodeId) {
-    document.body.classList.add("has-mobile-selection");
-    setActiveNode(nearest.node.id);
-  }
-}
-
-function getSafePixelRatio(width, height) {
-  const pixelBudget = width < 720 ? 6_000_000 : 14_000_000;
-  const deviceRatio = window.devicePixelRatio || 1;
-  const ratioForBudget = Math.sqrt(pixelBudget / (width * height));
-  return Math.max(1, Math.min(deviceRatio, 2, ratioForBudget));
+function ellipse(x, y, rx, ry, stroke = false) {
+  ctx.beginPath(); ctx.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, Math.PI * 2);
+  stroke ? ctx.stroke() : ctx.fill();
 }
 
 function setActiveNode(id) {
@@ -821,455 +495,101 @@ function setActiveNode(id) {
 
 function layoutGraph() {
   if (!nodeButtons.length) return;
-
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const compact = isConstellationViewport();
-  const phone = isPhoneViewport();
-  layoutDecorativeConstellation(width, height, phone);
-  const visibleNodes = getVisibleGraphNodes();
-  const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
-  const visibleEdges = edges.filter(([from, to]) => visibleNodeIds.has(from) && visibleNodeIds.has(to));
-  const graphPositions = new Map(visibleNodes.map((node) => [node.id, getGraphPosition(node, width, height)]));
-  const activeConnections = new Set(
-    visibleEdges.filter(([from, to]) => from === activeNodeId || to === activeNodeId).flat(),
-  );
-
+  const positions = new Map(nodes.map((node) => [node.id, graphPosition(node)]));
+  const connected = new Set(edges.filter(([a, b]) => a === activeNodeId || b === activeNodeId).flat());
   nodes.forEach((node, index) => {
-    const button = nodeButtons[index];
-    button.hidden = !visibleNodeIds.has(node.id);
-    if (button.hidden) return;
-    const position = graphPositions.get(node.id);
-    button.style.transform = `translate(${position.x}px, ${position.y}px)`;
-    button.classList.toggle("is-connected", activeConnections.has(node.id));
+    const position = positions.get(node.id);
+    nodeButtons[index].style.transform = `translate(${position.x}px, ${position.y}px)`;
+    nodeButtons[index].classList.toggle("is-connected", connected.has(node.id));
   });
 
   nodeLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  // On mobile/tablet, only the connections touching the active node stay lit,
-  // and they fade in one after another instead of all at once -- the web of
-  // connections "grows" as you move your finger from point to point.
-  const activeEdgeOrder = visibleEdges.filter(([from, to]) => from === activeNodeId || to === activeNodeId);
-  nodeLines.replaceChildren(
-    ...visibleEdges.map(([from, to]) => {
-      const fromNode = nodes.find((node) => node.id === from);
-      const toNode = nodes.find((node) => node.id === to);
-      const isLit = from === activeNodeId || to === activeNodeId;
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      const fromPosition = graphPositions.get(fromNode.id);
-      const toPosition = graphPositions.get(toNode.id);
-      const x1 = fromPosition.x + 6;
-      const y1 = fromPosition.y + 6;
-      const x2 = toPosition.x + 6;
-      const y2 = toPosition.y + 6;
-      line.setAttribute("x1", x1);
-      line.setAttribute("y1", y1);
-      line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
-      line.setAttribute("class", isLit ? "is-lit" : "");
-      if (compact && isLit) {
-        const staggerIndex = activeEdgeOrder.findIndex(([f, t]) => f === from && t === to);
-        line.style.transitionDelay = `${Math.max(0, staggerIndex) * 70}ms`;
-      } else {
-        line.style.transitionDelay = "0ms";
-      }
-      return line;
-    }),
-  );
-}
-
-function layoutDecorativeConstellation(width, height, phone) {
-  const layoutKey = `${width}:${height}:${phone}`;
-  if (layoutKey === decorativeLayoutKey) return;
-  decorativeLayoutKey = layoutKey;
-
-  constellationPoints.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  const elements = [];
-  const clusters = phone ? getPhoneDecorativeClusters(width, height) : decorativeClusters.map((cluster) => ({
-    ...cluster,
-    centerX: width * cluster.x,
-    centerY: height * cluster.y,
-    radiusX: width * cluster.radiusX,
-    radiusY: height * cluster.radiusY,
+  nodeLines.replaceChildren(...edges.map(([from, to], index) => {
+    const a = positions.get(from); const b = positions.get(to);
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", a.x + 6); line.setAttribute("y1", a.y + 6);
+    line.setAttribute("x2", b.x + 6); line.setAttribute("y2", b.y + 6);
+    if (from === activeNodeId || to === activeNodeId) line.setAttribute("class", "is-lit");
+    line.style.transitionDelay = isCompact() ? `${(index % 3) * 70}ms` : "0ms";
+    return line;
   }));
-
-  clusters.forEach((cluster, clusterIndex) => {
-    const centerX = cluster.centerX;
-    const centerY = cluster.centerY;
-    const points = Array.from({ length: cluster.count }, (_, index) => {
-      const angle = cluster.phase + index * 2.3999632297;
-      const spread = 0.3 + ((index % 8) / 10) + Math.sqrt((index + 1) / cluster.count) * 0.32;
-      return {
-        x: centerX + Math.cos(angle) * cluster.radiusX * spread,
-        y: centerY + Math.sin(angle) * cluster.radiusY * spread,
-        radius: (phone ? 0.9 : 1.45) + (index % 4) * (phone ? 0.24 : 0.38),
-      };
-    });
-
-    points.forEach((point, index) => {
-      if (index > 0 && index % 3 === 0) {
-        const previous = points[index - 1];
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", previous.x);
-        line.setAttribute("y1", previous.y);
-        line.setAttribute("x2", point.x);
-        line.setAttribute("y2", point.y);
-        line.setAttribute("class", "constellation-thread");
-        elements.push(line);
-      }
-
-      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      dot.setAttribute("cx", point.x);
-      dot.setAttribute("cy", point.y);
-      dot.setAttribute("r", point.radius);
-      dot.setAttribute("class", `constellation-dot cluster-${clusterIndex}`);
-      elements.push(dot);
-    });
-  });
-
-  constellationPoints.replaceChildren(...elements);
+  layoutDecorations();
 }
 
-function getPhoneDecorativeClusters(width, height) {
-  const metrics = getConstellationMetrics(width, height);
-  return [
-    {
-      centerX: metrics.centerX,
-      centerY: metrics.centerY,
-      radiusX: metrics.radius * 0.82,
-      radiusY: metrics.radius * 0.68,
-      count: 34,
-      phase: -1.2,
-    },
-  ];
-}
-
-function getGraphPosition(node, width, height) {
-  if (width < 640) {
-    return getConstellationPosition(node, width, height);
+function graphPosition(node) {
+  if (width >= 1100) return { x: width * desktopLayout[node.id].x, y: height * desktopLayout[node.id].y };
+  if (width >= 640) {
+    const p = desktopLayout[node.id];
+    const cx = width * 0.5; const cy = height * 0.46;
+    return { x: cx + (width * p.x - cx) * mobileGraph.scale + mobileGraph.offsetX, y: cy + (height * (0.16 + p.y * 0.6) - cy) * mobileGraph.scale + mobileGraph.offsetY };
   }
-
-  if (width < 1100) {
-    return getTabletGraphPosition(node, width, height);
-  }
-
-  const position = firstDraftDesktopLayout[node.id];
-  return {
-    x: width * position.x,
-    y: height * position.y,
-  };
+  const zone = constellationZone();
+  const layout = compactLayout[node.id];
+  const radius = zone.radius * layout.radius * mobileGraph.scale;
+  const angle = layout.angle * Math.PI / 180;
+  return { x: width * 0.5 + Math.cos(angle) * radius + mobileGraph.offsetX, y: zone.centerY + Math.sin(angle) * radius + mobileGraph.offsetY };
 }
 
-function getTabletGraphPosition(node, width, height) {
-  const position = firstDraftDesktopLayout[node.id];
-  const centerX = width * 0.5;
-  const centerY = height * 0.46;
-  const baseX = width * position.x;
-  // Keep the desktop diagram intact while fitting it above the floor hole.
-  const baseY = height * (0.16 + position.y * 0.6);
-
-  return {
-    x: centerX + (baseX - centerX) * mobileGraph.scale + mobileGraph.offsetX,
-    y: centerY + (baseY - centerY) * mobileGraph.scale + mobileGraph.offsetY,
-  };
-}
-
-// Single source of truth for the compact position between the title and hole.
-// Recomputed every layout pass from the live DOM, so it tracks the real height
-// of the intro text at any viewport size.
-function getConstellationZone(width, height) {
+function constellationZone() {
   const safeTop = intro.getBoundingClientRect().bottom + Math.max(16, height * 0.022);
   const safeBottom = height * (width < 640 ? 0.58 : 0.62) - 26;
   const zoneHeight = Math.max(60, safeBottom - safeTop);
-  const focusY = safeTop + zoneHeight / 2;
-  const maxRadius = Math.max(32, Math.min(zoneHeight / 2, width * 0.42));
-  return { safeTop, safeBottom, zoneHeight, focusY, maxRadius };
+  return { centerY: safeTop + zoneHeight / 2 + height * 0.025, radius: Math.max(32, Math.min(zoneHeight / 2, width * 0.4)) * 0.95 };
 }
 
-function getConstellationPosition(node, width, height) {
-  const metrics = getConstellationMetrics(width, height);
-  const layout = constellationLayout[node.id] ?? { angle: 0, radius: 1 };
-  const radius = metrics.radius * layout.radius;
-  const angle = THREE.MathUtils.degToRad(layout.angle);
-
-  return {
-    x: metrics.centerX + Math.cos(angle) * radius,
-    y: metrics.centerY + Math.sin(angle) * radius,
-  };
+function layoutDecorations() {
+  constellationPoints.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  const elements = [];
+  const center = width < 640 ? { x: width * 0.5, y: constellationZone().centerY, rx: constellationZone().radius * 0.82, ry: constellationZone().radius * 0.68 } : { x: width * 0.48, y: height * 0.52, rx: width * 0.29, ry: height * 0.18 };
+  for (let i = 0; i < (width < 640 ? 34 : 42); i += 1) {
+    const angle = -1.2 + i * 2.399963;
+    const spread = 0.3 + (i % 8) / 10 + Math.sqrt((i + 1) / 42) * 0.32;
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", center.x + Math.cos(angle) * center.rx * spread);
+    dot.setAttribute("cy", center.y + Math.sin(angle) * center.ry * spread);
+    dot.setAttribute("r", 1 + (i % 4) * 0.35);
+    dot.setAttribute("class", "constellation-dot"); elements.push(dot);
+  }
+  constellationPoints.replaceChildren(...elements);
 }
 
-function getConstellationMetrics(width, height) {
-  const zone = getConstellationZone(width, height);
-  const isPhone = width < 640;
-  return {
-    centerX: width * 0.5 + mobileGraph.offsetX,
-    centerY: zone.focusY + (isPhone ? height * 0.025 : 0) + mobileGraph.offsetY,
-    radius: zone.maxRadius * (isPhone ? 0.95 : 0.78) * mobileGraph.scale,
-  };
+function isCompact() { return width < 1100; }
+
+function beginGraphGesture(event) {
+  if (!isCompact() || event.pointerType !== "touch") return;
+  mobileGraph.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (mobileGraph.pointers.size === 2) {
+    const [a, b] = [...mobileGraph.pointers.values()];
+    mobileGraph.pinchDistance = Math.hypot(b.x - a.x, b.y - a.y);
+    mobileGraph.pinchScale = mobileGraph.scale;
+  }
 }
 
-function createConcreteTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 512;
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#f8f7f3";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < 3600; i += 1) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    const alpha = Math.random() * 0.026;
-    ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${alpha})` : `rgba(0,0,0,${alpha})`;
-    ctx.fillRect(x, y, 1 + Math.random() * 2, 1 + Math.random() * 2);
+function moveGraphGesture(event) {
+  const previous = mobileGraph.pointers.get(event.pointerId);
+  if (!previous) return;
+  const next = { x: event.clientX, y: event.clientY };
+  mobileGraph.pointers.set(event.pointerId, next);
+  if (mobileGraph.pointers.size === 1 && mobileGraph.scale > 1) {
+    const limit = Math.min(width, height) * (mobileGraph.scale - 0.8) * 0.25;
+    mobileGraph.offsetX = clamp(mobileGraph.offsetX + next.x - previous.x, -limit, limit);
+    mobileGraph.offsetY = clamp(mobileGraph.offsetY + next.y - previous.y, -limit * 0.55, limit * 0.55);
+  } else if (mobileGraph.pointers.size === 2) {
+    const [a, b] = [...mobileGraph.pointers.values()];
+    const distance = Math.hypot(b.x - a.x, b.y - a.y);
+    mobileGraph.scale = clamp(mobileGraph.pinchScale * distance / Math.max(1, mobileGraph.pinchDistance), 1, 2.4);
   }
-
-  ctx.strokeStyle = "rgba(28, 27, 25, 0.035)";
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 34; i += 1) {
-    ctx.beginPath();
-    const startX = Math.random() * canvas.width;
-    const startY = Math.random() * canvas.height;
-    ctx.moveTo(startX, startY);
-    ctx.bezierCurveTo(
-      startX + Math.random() * 120 - 60,
-      startY + Math.random() * 80 - 40,
-      startX + Math.random() * 180 - 90,
-      startY + Math.random() * 180 - 90,
-      startX + Math.random() * 240 - 120,
-      startY + Math.random() * 240 - 120,
-    );
-    ctx.stroke();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(2.2, 2.2);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+  mobileGraph.lastGestureAt = Date.now();
+  layoutGraph();
 }
 
-function createObjectTexture(type) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 384;
-  canvas.height = 480;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const ink = "#141414";
-  const charcoal = "#2f2f2d";
-  const grey = "#76756f";
-  const shade = "#c9c4ba";
-  const paper = "#f7f3eb";
-
-  ctx.save();
-  ctx.translate(192, 240);
-  ctx.rotate(objectTextureRotation(type));
-  ctx.translate(-192, -240);
-  ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetX = 14;
-  ctx.shadowOffsetY = 18;
-
-  if (type === "painting") {
-    ctx.fillStyle = grey;
-    roundRect(ctx, 92, 74, 214, 284, 8);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.fillStyle = charcoal;
-    ctx.beginPath();
-    ctx.moveTo(306, 74);
-    ctx.lineTo(332, 98);
-    ctx.lineTo(332, 377);
-    ctx.lineTo(306, 358);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = paper;
-    roundRect(ctx, 109, 94, 176, 238, 4);
-    ctx.fill();
-    const picture = ctx.createLinearGradient(118, 104, 278, 322);
-    picture.addColorStop(0, "#e6e0d6");
-    picture.addColorStop(0.58, "#b8b2a8");
-    picture.addColorStop(1, "#f2eee7");
-    ctx.fillStyle = picture;
-    ctx.fillRect(124, 113, 146, 200);
-    ctx.fillStyle = "#171717";
-    ctx.beginPath();
-    ctx.ellipse(197, 211, 58, 72, -0.22, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 13;
-    ctx.strokeRect(98, 81, 199, 266);
-  }
-
-  if (type === "book") {
-    ctx.fillStyle = charcoal;
-    roundRect(ctx, 116, 64, 172, 314, 12);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.fillStyle = "#0f0f0f";
-    ctx.beginPath();
-    ctx.moveTo(288, 64);
-    ctx.lineTo(320, 91);
-    ctx.lineTo(320, 392);
-    ctx.lineTo(288, 378);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#ece6dc";
-    roundRect(ctx, 139, 87, 128, 258, 5);
-    ctx.fill();
-    ctx.fillStyle = "#181818";
-    ctx.fillRect(117, 64, 32, 314);
-    ctx.strokeStyle = grey;
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(179, 129);
-    ctx.lineTo(239, 129);
-    ctx.moveTo(176, 161);
-    ctx.lineTo(250, 161);
-    ctx.moveTo(177, 303);
-    ctx.lineTo(233, 303);
-    ctx.stroke();
-    ctx.fillStyle = "#161616";
-    ctx.beginPath();
-    ctx.ellipse(213, 231, 38, 50, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (type === "statue") {
-    ctx.fillStyle = shade;
-    ctx.beginPath();
-    ctx.ellipse(194, 108, 52, 58, 0.08, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    const bust = ctx.createLinearGradient(124, 150, 275, 360);
-    bust.addColorStop(0, "#e6e1d7");
-    bust.addColorStop(0.45, "#b9b5ad");
-    bust.addColorStop(1, "#77756f");
-    ctx.fillStyle = bust;
-    ctx.beginPath();
-    ctx.moveTo(139, 197);
-    ctx.quadraticCurveTo(191, 143, 245, 198);
-    ctx.lineTo(272, 342);
-    ctx.lineTo(111, 342);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "rgba(0,0,0,0.2)";
-    ctx.beginPath();
-    ctx.moveTo(219, 159);
-    ctx.quadraticCurveTo(251, 217, 238, 329);
-    ctx.lineTo(274, 343);
-    ctx.lineTo(246, 198);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = ink;
-    ctx.beginPath();
-    ctx.arc(173, 106, 7, 0, Math.PI * 2);
-    ctx.arc(213, 107, 7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (type === "magazine") {
-    ctx.fillStyle = "#9f9b92";
-    roundRect(ctx, 104, 62, 182, 318, 8);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.fillStyle = "#2b2b29";
-    ctx.beginPath();
-    ctx.moveTo(286, 62);
-    ctx.lineTo(318, 86);
-    ctx.lineTo(318, 395);
-    ctx.lineTo(286, 380);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = paper;
-    roundRect(ctx, 119, 80, 146, 276, 5);
-    ctx.fill();
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 11;
-    ctx.strokeRect(111, 70, 168, 298);
-    ctx.fillStyle = ink;
-    ctx.fillRect(139, 110, 102, 16);
-    ctx.fillRect(139, 145, 82, 8);
-    ctx.fillRect(139, 319, 88, 9);
-    const photo = ctx.createLinearGradient(144, 174, 238, 280);
-    photo.addColorStop(0, "#d9d3c8");
-    photo.addColorStop(1, "#aaa59c");
-    ctx.fillStyle = photo;
-    ctx.fillRect(143, 174, 98, 102);
-    ctx.fillStyle = ink;
-    ctx.beginPath();
-    ctx.ellipse(192, 226, 34, 44, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (type === "person") {
-    ctx.strokeStyle = "rgba(0,0,0,0.24)";
-    ctx.lineWidth = 26;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(203, 176);
-    ctx.lineTo(252, 260);
-    ctx.moveTo(177, 177);
-    ctx.lineTo(128, 260);
-    ctx.moveTo(180, 320);
-    ctx.lineTo(154, 417);
-    ctx.moveTo(206, 320);
-    ctx.lineTo(239, 415);
-    ctx.stroke();
-    ctx.fillStyle = ink;
-    ctx.beginPath();
-    ctx.arc(192, 88, 41, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(193, 134);
-    ctx.quadraticCurveTo(139, 208, 159, 326);
-    ctx.lineTo(229, 326);
-    ctx.quadraticCurveTo(248, 208, 193, 134);
-    ctx.fill();
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 25;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(174, 182);
-    ctx.lineTo(124, 265);
-    ctx.moveTo(211, 183);
-    ctx.lineTo(263, 263);
-    ctx.moveTo(179, 318);
-    ctx.lineTo(153, 419);
-    ctx.moveTo(207, 318);
-    ctx.lineTo(240, 418);
-    ctx.stroke();
-  }
-
-  ctx.restore();
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-  return texture;
+function endGraphGesture(event) {
+  mobileGraph.pointers.delete(event.pointerId);
+  if (mobileGraph.pointers.size < 2) mobileGraph.pinchDistance = 0;
 }
 
-function objectTextureRotation(type) {
-  return {
-    painting: -0.08,
-    book: 0.12,
-    statue: -0.03,
-    magazine: 0.08,
-    person: -0.04,
-  }[type];
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function smoothstep(min, max, value) {
+  const x = clamp((value - min) / (max - min), 0, 1);
+  return x * x * (3 - 2 * x);
 }

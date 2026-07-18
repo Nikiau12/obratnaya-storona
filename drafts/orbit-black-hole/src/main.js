@@ -101,12 +101,14 @@ const edges = [
 ];
 
 const fallingObjectSpecs = [
-  { type: "painting", label: "Картина", aspect: 0.78, size: 0.23, speed: 0.0032, angle: 0.35 },
-  { type: "book", label: "Книга", aspect: 0.72, size: 0.21, speed: 0.0028, angle: 1.85 },
-  { type: "statue", label: "Статуя", aspect: 0.58, size: 0.23, speed: 0.0025, angle: 3.05 },
-  { type: "magazine", label: "Журнал", aspect: 0.73, size: 0.2, speed: 0.0035, angle: 4.3 },
-  { type: "person", label: "Человек", aspect: 0.45, size: 0.24, speed: 0.0026, angle: 5.2 },
+  { type: "vangogh", label: "Картина Ван Гога", aspect: 1.28, size: 0.22, speed: 0.0032, angle: 0.35 },
+  { type: "dostoevsky", label: "Портрет Достоевского", aspect: 0.72, size: 0.24, speed: 0.0028, angle: 1.85 },
+  { type: "book", label: "Книга Достоевского", aspect: 0.68, size: 0.22, speed: 0.0025, angle: 3.05 },
+  { type: "rodin", label: "Статуя Родена", aspect: 0.52, size: 0.27, speed: 0.0035, angle: 4.3 },
+  { type: "times", label: "Газета The Times", aspect: 0.68, size: 0.24, speed: 0.0026, angle: 5.2 },
 ];
+
+const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 const root = document.querySelector("#app");
 root.innerHTML = `
@@ -137,6 +139,13 @@ const noteCopy = document.querySelector(".note-copy");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const textureLoader = new THREE.TextureLoader();
+const imageTextures = {
+  vangogh: loadTexture(assetPath("assets/vangogh-starry-night.jpg")),
+  dostoevsky: loadTexture(assetPath("assets/dostoevsky-portrait.jpg")),
+  rodin: loadTexture(assetPath("assets/rodin-cutout.png")),
+};
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
@@ -271,7 +280,7 @@ function createParticle(index) {
 }
 
 function createFallingObject(spec, index) {
-  const texture = createObjectTexture(spec.type);
+  const texture = imageTextures[spec.type] ?? createObjectTexture(spec.type);
   const height = spec.size;
   const width = height * spec.aspect;
   const mesh = new THREE.Mesh(
@@ -279,6 +288,7 @@ function createFallingObject(spec, index) {
     new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
+      alphaTest: spec.type === "rodin" ? 0.08 : 0,
       opacity: 0.92,
       depthTest: false,
     }),
@@ -327,43 +337,6 @@ function createObjectTexture(type) {
   ctx.shadowOffsetX = 14;
   ctx.shadowOffsetY = 18;
 
-  if (type === "painting") {
-    ctx.fillStyle = grey;
-    roundRect(ctx, 92, 74, 214, 284, 8);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.fillStyle = charcoal;
-    ctx.beginPath();
-    ctx.moveTo(306, 74);
-    ctx.lineTo(332, 98);
-    ctx.lineTo(332, 377);
-    ctx.lineTo(306, 358);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = paper;
-    roundRect(ctx, 109, 94, 176, 238, 4);
-    ctx.fill();
-    const picture = ctx.createLinearGradient(118, 104, 278, 322);
-    picture.addColorStop(0, "#e6e0d6");
-    picture.addColorStop(0.58, "#b8b2a8");
-    picture.addColorStop(1, "#f2eee7");
-    ctx.fillStyle = picture;
-    ctx.fillRect(124, 113, 146, 200);
-    ctx.fillStyle = "#171717";
-    ctx.beginPath();
-    ctx.ellipse(197, 211, 58, 72, -0.22, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 13;
-    ctx.strokeRect(98, 81, 199, 266);
-    ctx.strokeStyle = "rgba(255,255,255,0.58)";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(129, 105);
-    ctx.lineTo(258, 105);
-    ctx.stroke();
-  }
-
   if (type === "book") {
     ctx.fillStyle = charcoal;
     roundRect(ctx, 116, 64, 172, 314, 12);
@@ -384,70 +357,23 @@ function createObjectTexture(type) {
     ctx.fillRect(117, 64, 32, 314);
     ctx.fillStyle = "rgba(255,255,255,0.42)";
     ctx.fillRect(154, 99, 7, 234);
+    ctx.fillStyle = "#181818";
+    ctx.font = "700 22px Georgia, Times New Roman, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("ДОСТОЕВСКИЙ", 203, 151);
+    ctx.font = "500 15px Georgia, Times New Roman, serif";
+    ctx.fillText("БРАТЬЯ КАРАМАЗОВЫ", 203, 181);
     ctx.strokeStyle = grey;
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(179, 129);
-    ctx.lineTo(239, 129);
-    ctx.moveTo(176, 161);
-    ctx.lineTo(250, 161);
-    ctx.moveTo(177, 303);
-    ctx.lineTo(233, 303);
-    ctx.stroke();
-    ctx.fillStyle = "#161616";
-    ctx.beginPath();
-    ctx.ellipse(213, 231, 38, 50, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (type === "statue") {
-    ctx.fillStyle = shade;
-    ctx.beginPath();
-    ctx.ellipse(194, 108, 52, 58, 0.08, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    const bust = ctx.createLinearGradient(124, 150, 275, 360);
-    bust.addColorStop(0, "#e6e1d7");
-    bust.addColorStop(0.45, "#b9b5ad");
-    bust.addColorStop(1, "#77756f");
-    ctx.fillStyle = bust;
-    ctx.beginPath();
-    ctx.moveTo(139, 197);
-    ctx.quadraticCurveTo(191, 143, 245, 198);
-    ctx.lineTo(272, 342);
-    ctx.lineTo(111, 342);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "rgba(0,0,0,0.2)";
-    ctx.beginPath();
-    ctx.moveTo(219, 159);
-    ctx.quadraticCurveTo(251, 217, 238, 329);
-    ctx.lineTo(274, 343);
-    ctx.lineTo(246, 198);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = ink;
-    ctx.beginPath();
-    ctx.arc(173, 106, 7, 0, Math.PI * 2);
-    ctx.arc(213, 107, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#85827b";
-    ctx.lineWidth = 14;
-    ctx.beginPath();
-    ctx.moveTo(126, 355);
-    ctx.lineTo(260, 355);
-    ctx.moveTo(102, 393);
-    ctx.lineTo(288, 393);
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(255,255,255,0.52)";
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(165, 176);
-    ctx.quadraticCurveTo(140, 230, 150, 314);
+    ctx.moveTo(169, 215);
+    ctx.lineTo(239, 215);
+    ctx.moveTo(169, 294);
+    ctx.lineTo(239, 294);
     ctx.stroke();
   }
 
-  if (type === "magazine") {
+  if (type === "times") {
     ctx.fillStyle = "#9f9b92";
     roundRect(ctx, 104, 62, 182, 318, 8);
     ctx.fill();
@@ -467,8 +393,10 @@ function createObjectTexture(type) {
     ctx.lineWidth = 11;
     ctx.strokeRect(111, 70, 168, 298);
     ctx.fillStyle = ink;
-    ctx.fillRect(139, 110, 102, 16);
-    ctx.fillRect(139, 145, 82, 8);
+    ctx.font = "700 23px Georgia, Times New Roman, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("THE TIMES", 192, 119);
+    ctx.fillRect(139, 145, 104, 7);
     ctx.fillRect(139, 319, 88, 9);
     const photo = ctx.createLinearGradient(144, 174, 238, 280);
     photo.addColorStop(0, "#d9d3c8");
@@ -535,6 +463,13 @@ function createObjectTexture(type) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
+  return texture;
+}
+
+function loadTexture(path) {
+  const texture = textureLoader.load(path);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
   return texture;
 }
 
