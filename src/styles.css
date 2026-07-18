@@ -188,6 +188,15 @@ h1 {
   transition: width 130ms ease-out, height 130ms ease-out, transform 130ms ease-out;
 }
 
+.node-label.is-upcoming .node-dot {
+  border: 1px solid rgba(17, 17, 17, 0.72);
+  background: rgba(251, 250, 247, 0.92);
+}
+
+.node-label.is-upcoming.is-active .node-dot {
+  background: rgba(251, 250, 247, 0.98);
+}
+
 .node-text {
   position: relative;
   z-index: 1;
@@ -199,6 +208,27 @@ h1 {
   white-space: nowrap;
   text-shadow: 0 0 3px rgba(251, 250, 247, 0.98), 0 0 7px rgba(251, 250, 247, 0.92);
   transition: transform 130ms ease-out;
+}
+
+.node-status {
+  position: absolute;
+  top: calc(100% + 0.08rem);
+  left: 1.28rem;
+  color: rgba(17, 17, 17, 0.48);
+  font-size: 0.58rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(-0.15rem);
+  transition: opacity 130ms ease-out, transform 130ms ease-out;
+}
+
+.node-label.is-upcoming:hover .node-status,
+.node-label.is-upcoming:focus-visible .node-status,
+.node-label.is-upcoming.is-active .node-status {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .node-label[data-id="signal"] .node-text,
@@ -353,6 +383,11 @@ h1 {
 }
 
 @media (max-width: 639px) {
+  .node-status {
+    left: 1rem;
+    font-size: 0.48rem;
+  }
+
   .node-label[data-id="showcase"] {
     gap: 0.55rem;
   }

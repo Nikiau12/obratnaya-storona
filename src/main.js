@@ -4,30 +4,30 @@ const projectLabelsReady = true;
 const projectDetailsReady = false;
 
 const objectSpecs = [
-  { type: "vangogh", width: 0.72, height: 0.58, duration: 14.2 },
-  { type: "writer", width: 0.52, height: 0.72, duration: 15.8 },
-  { type: "rodin", width: 0.48, height: 0.76, duration: 16.9 },
-  { type: "times", width: 0.58, height: 0.78, duration: 13.6 },
+  { type: "nose", width: 0.72, height: 0.72, duration: 14.2 },
+  { type: "lemon", width: 0.64, height: 0.64, duration: 15.8 },
+  { type: "stone", width: 0.68, height: 0.68, duration: 16.9 },
+  { type: "propeller", width: 0.76, height: 0.76, duration: 13.6 },
 ];
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
 const assetUrls = {
-  vangogh: assetPath("assets/vangogh-starry-night.webp"),
-  writer: assetPath("assets/dostoevsky-portrait.webp"),
-  rodin: assetPath("assets/rodin-cutout.webp"),
-  times: assetPath("assets/times-masthead.webp"),
+  nose: assetPath("assets/object-nose.webp"),
+  lemon: assetPath("assets/object-lemon.webp"),
+  stone: assetPath("assets/object-stone.webp"),
+  propeller: assetPath("assets/object-propeller.webp"),
 };
 
 const nodes = [
-  { id: "signal", title: "Носорог", description: "", kind: "project" },
-  { id: "flicker", title: "Taylor Books", description: "", kind: "project" },
-  { id: "residents", title: "Обратная сторона — медиа", description: "", kind: "project" },
-  { id: "showcase", title: "Онлайн-книжный", description: "", kind: "project" },
-  { id: "word", title: "press me", description: "", kind: "project" },
-  { id: "day", title: "", description: "", kind: "placeholder" },
-  { id: "archive", title: "", description: "", kind: "placeholder" },
-  { id: "about", title: "", description: "", kind: "placeholder" },
-  { id: "contact", title: "", description: "", kind: "placeholder" },
+  { id: "signal", title: "Носорог", description: "", kind: "project", status: "live" },
+  { id: "flicker", title: "Taylor Books", description: "", kind: "project", status: "live" },
+  { id: "residents", title: "Обратная сторона — медиа", description: "", kind: "project", status: "upcoming" },
+  { id: "showcase", title: "Онлайн-книжный", description: "", kind: "project", status: "upcoming" },
+  { id: "word", title: "press me", description: "", kind: "project", status: "upcoming" },
+  { id: "day", title: "", description: "", kind: "placeholder", status: "placeholder" },
+  { id: "archive", title: "", description: "", kind: "placeholder", status: "placeholder" },
+  { id: "about", title: "", description: "", kind: "placeholder", status: "placeholder" },
+  { id: "contact", title: "", description: "", kind: "placeholder", status: "placeholder" },
 ];
 
 const edges = [
@@ -120,11 +120,12 @@ const targetFrameDuration = 1000 / 60;
 
 const nodeButtons = nodes.map((node, index) => {
   const button = document.createElement("button");
-  button.className = `node-label is-${node.kind}`;
+  button.className = `node-label is-${node.kind} is-${node.status}`;
   button.type = "button";
   button.dataset.id = node.id;
-  button.setAttribute("aria-label", node.title || `Проект ${index + 1}: название не указано`);
-  button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}`;
+  const statusLabel = node.status === "live" ? ", работает" : node.status === "upcoming" ? ", скоро" : "";
+  button.setAttribute("aria-label", node.title ? `${node.title}${statusLabel}` : `Проект ${index + 1}: название не указано`);
+  button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
   ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
     if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
     if (isCompact() && projectDetailsReady) document.body.classList.add("has-mobile-selection");
@@ -380,10 +381,10 @@ function drawHole(m, time) {
     + Math.sin(time * 2.37 + 3.1) * 0.08
   );
   const horizons = [
-    { scale: 1.78, alpha: 0.035, line: 0.13, phase: 0.4 },
-    { scale: 1.52, alpha: 0.05, line: 0.12, phase: 1.7 },
-    { scale: 1.3, alpha: 0.07, line: 0.095, phase: 2.8 },
-    { scale: 1.16, alpha: 0.075, line: 0.052, phase: 4.1 },
+    { scale: 1.78, alpha: 0.022, line: 0.095, phase: 0.4 },
+    { scale: 1.52, alpha: 0.033, line: 0.088, phase: 1.7 },
+    { scale: 1.3, alpha: 0.047, line: 0.072, phase: 2.8 },
+    { scale: 1.16, alpha: 0.056, line: 0.042, phase: 4.1 },
   ];
   ctx.save();
   // The accretion rings belong to the floor plane. Clipping them to its
@@ -399,8 +400,8 @@ function drawHole(m, time) {
   ctx.clip();
   horizons.forEach((horizon) => {
     const densityWave = Math.sin(time * 0.9 + horizon.phase) * 0.008;
-    const flowScale = 1 + breath * 0.035 + flowSignal * 0.008 + densityWave;
-    const flowAlpha = horizon.alpha * (1 + flowSignal * 0.48);
+    const flowScale = 1 + breath * 0.022 + flowSignal * 0.006 + densityWave;
+    const flowAlpha = horizon.alpha * (1 + flowSignal * 0.34);
     ctx.strokeStyle = `rgba(70,67,62,${flowAlpha})`;
     ctx.lineWidth = Math.max(2, w * horizon.line * (1 + flowSignal * 0.16));
     ellipse(
@@ -416,7 +417,7 @@ function drawHole(m, time) {
   // This is an apparent change of the optical shadow, not a literal expansion
   // of the event horizon. Keeping it small makes the breathing readable while
   // the larger wave remains in the variable accretion flow.
-  const opticalW = w * (1 + breath * 0.018);
+  const opticalW = w * (1 + breath * 0.009);
   const opticalH = opticalW * 0.34;
   const shadow = ctx.createRadialGradient(m.holeX, m.holeY, opticalW * 0.12, m.holeX, m.holeY, opticalW * 0.74);
   shadow.addColorStop(0, "rgba(0,0,0,.96)");
@@ -428,8 +429,9 @@ function drawHole(m, time) {
   ctx.fillStyle = shadow;
   ctx.beginPath(); ctx.arc(0, 0, opticalW * 0.78, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
+
   ctx.fillStyle = "#000";
-  ellipse(m.holeX, m.holeY, opticalW * 0.68, opticalH * 0.68);
+  ellipse(m.holeX, m.holeY, opticalW * 0.72, opticalH * 0.72);
 }
 
 function getObjectState(item, time, m) {
@@ -456,7 +458,7 @@ function getObjectState(item, time, m) {
     x, y,
     groundX, groundY, angle,
     rotation: tumble,
-    scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.72 : 1),
+    scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.86 : 1),
     alpha: Math.exp(-4.8 * redshift * redshift),
   };
 }
@@ -464,7 +466,7 @@ function getObjectState(item, time, m) {
 function drawObject(state) {
   const { item, x, y, groundX, groundY, rotation, scale, redshift, alpha } = state;
   if (alpha <= 0.01) return;
-  const base = Math.min(width, height) * 0.19;
+  const base = Math.min(width, height) * 0.22;
   const objectW = base * item.width * scale;
   const objectH = base * item.height * scale;
 
@@ -484,56 +486,8 @@ function drawObject(state) {
 
 function drawSprite(type, w, h) {
   const image = images[type];
-  if (type === "vangogh") {
-    ctx.fillStyle = "#4d4942"; ctx.fillRect(-w * 0.57, -h * 0.58, w * 1.14, h * 1.16);
-    ctx.fillStyle = "#111"; ctx.fillRect(w * 0.48, -h * 0.54, w * 0.18, h * 1.14);
-    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.46, -h * 0.45, w * 0.92, h * 0.9);
-  } else if (type === "writer") {
-    ctx.fillStyle = "#ded8cc"; ctx.fillRect(-w * 0.56, -h * 0.55, w * 1.12, h * 1.1);
-    ctx.fillStyle = "#24211d"; ctx.fillRect(w * 0.48, -h * 0.53, w * 0.17, h * 1.1);
-    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.46, -h * 0.45, w * 0.92, h * 0.9);
-  } else if (type === "rodin") {
-    if (image.complete && image.naturalWidth) ctx.drawImage(image, -w * 0.62, -h * 0.62, w * 1.24, h * 1.24);
-  } else if (type === "times") {
-    ctx.fillStyle = "#e7dfd2"; ctx.fillRect(-w * 0.6, -h * 0.56, w * 1.2, h * 1.12);
-    ctx.strokeStyle = "rgba(0,0,0,.28)"; ctx.lineWidth = 1; ctx.strokeRect(-w * 0.6, -h * 0.56, w * 1.2, h * 1.12);
-
-    ctx.fillStyle = "#111";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = `700 ${Math.max(5, h * 0.095)}px Georgia, "Times New Roman", serif`;
-    ctx.fillText("THE TIMES", 0, -h * 0.42, w * 0.98);
-    if (image.complete && image.naturalWidth) {
-      ctx.globalAlpha *= 0.82;
-      ctx.drawImage(image, -w * 0.18, -h * 0.49, w * 0.36, h * 0.07);
-      ctx.globalAlpha /= 0.82;
-    }
-
-    ctx.strokeStyle = "rgba(0,0,0,.72)";
-    ctx.lineWidth = Math.max(0.6, h * 0.008);
-    ctx.beginPath();
-    ctx.moveTo(-w * 0.51, -h * 0.345); ctx.lineTo(w * 0.51, -h * 0.345);
-    ctx.moveTo(-w * 0.51, -h * 0.31); ctx.lineTo(w * 0.51, -h * 0.31);
-    ctx.stroke();
-
-    ctx.font = `600 ${Math.max(4, h * 0.045)}px Georgia, "Times New Roman", serif`;
-    ctx.fillText("CULTURE  ·  BOOKS  ·  ART", 0, -h * 0.255, w * 0.96);
-    ctx.fillStyle = "rgba(17,17,17,.88)";
-    const columns = [-0.43, -0.13, 0.17].map((position) => position * w);
-    columns.forEach((columnX, columnIndex) => {
-      for (let row = 0; row < 12; row += 1) {
-        if (columnIndex === 1 && row >= 3 && row <= 7) continue;
-        const lineW = w * (0.2 + ((row + columnIndex) % 3) * 0.025);
-        ctx.fillRect(columnX, -h * 0.19 + row * h * 0.052, lineW, Math.max(0.7, h * 0.008));
-      }
-    });
-    ctx.fillStyle = "#aaa39a";
-    ctx.fillRect(-w * 0.095, -h * 0.035, w * 0.25, h * 0.25);
-    ctx.fillStyle = "#292724";
-    ctx.beginPath(); ctx.ellipse(w * 0.03, h * 0.09, w * 0.065, h * 0.075, -0.18, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,.14)";
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, -h * 0.55); ctx.lineTo(0, h * 0.55); ctx.stroke();
+  if (image.complete && image.naturalWidth) {
+    ctx.drawImage(image, -w * 0.68, -h * 0.68, w * 1.36, h * 1.36);
   }
 }
 
