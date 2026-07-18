@@ -502,6 +502,7 @@ function ellipse(x, y, rx, ry, stroke = false) {
 function setActiveNode(id) {
   activeNodeId = id;
   const node = nodes.find((item) => item.id === id);
+  document.body.classList.toggle("is-contact-active", id === "contact");
   infoTitle.textContent = node.title;
   infoCopy.textContent = node.description;
   nodeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.id === id));
