@@ -4,18 +4,18 @@ const projectLabelsReady = true;
 
 // A deliberately small typographic vocabulary replaces the unrelated found
 // objects. Every sign belongs to publishing: letters and fragments, punctuation,
-// printing marks, one mirrored word, and one custom almost-abstract glyph.
+// printing marks, page furniture, and one mirrored word.
 const objectSpecs = [
   { kind: "letter", text: "Ж", width: 0.64, height: 0.72, weight: 300, duration: 14.2 },
   { kind: "fragment", text: "Я", width: 0.58, height: 0.72, weight: 500, duration: 16.1 },
   { kind: "punctuation", text: "« »", width: 0.82, height: 0.46, weight: 300, size: 0.9, duration: 15.4 },
-  { kind: "punctuation", text: "( )", width: 0.78, height: 0.58, weight: 300, size: 0.78, rotationFactor: 0.22, duration: 17.2 },
   { kind: "punctuation", text: "—", width: 0.72, height: 0.3, weight: 400, duration: 13.8 },
-  { kind: "punctuation", text: "*", width: 0.46, height: 0.56, weight: 400, duration: 18.1 },
+  { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
-  { kind: "printing", text: "§", width: 0.48, height: 0.68, weight: 300, duration: 19.1 },
-  { kind: "mirror-word", text: "текст", width: 1.04, height: 0.34, weight: 400, duration: 18.6 },
-  { kind: "abstract", width: 0.62, height: 0.62, size: 0.76, rotationFactor: 0.42, duration: 15.9 },
+  { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
+  { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
+  { kind: "text-fragment", text: "обра—", width: 0.82, height: 0.25, weight: 400, size: 0.8, duration: 17.4 },
+  { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
 ];
 
 const nodes = [
@@ -464,11 +464,15 @@ function getObjectState(item, time, m) {
   const y = groundY - altitude;
   const redshift = smoothstep(0.9, 0.997, observedFall);
   const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
+  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination";
+  const rotation = keepsBaseline
+    ? Math.sin(time * 0.42 + item.index * 0.8) * 0.075
+    : tumble * (item.rotationFactor ?? (item.kind === "fragment" ? 0.62 : 0.72));
   return {
     item, cycle, redshift, behind: Math.sin(angle) < 0,
     x, y,
     groundX, groundY, angle,
-    rotation: tumble * (item.rotationFactor ?? (item.kind === "mirror-word" ? 0.34 : item.kind === "fragment" ? 0.62 : 0.72)),
+    rotation,
     scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.86 : 1),
     alpha: Math.exp(-4.8 * redshift * redshift),
   };
@@ -499,19 +503,22 @@ function drawObject(state) {
 function drawTypographicSprite(item, w, h) {
   ctx.fillStyle = "rgba(12,12,12,.92)";
 
-  if (item.kind === "abstract") {
-    // A glyph-like construction that cannot quite be read as a known character.
+  if (item.kind === "crop-marks") {
+    // Four crop marks form an almost-abstract object while remaining a real
+    // piece of printing vocabulary.
     ctx.strokeStyle = "rgba(12,12,12,.9)";
-    ctx.lineWidth = Math.max(1.3, w * 0.045);
-    ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(1, w * 0.026);
+    ctx.lineCap = "square";
+    const outerX = w * 0.38;
+    const outerY = h * 0.38;
+    const innerX = w * 0.19;
+    const innerY = h * 0.19;
     ctx.beginPath();
-    ctx.arc(-w * 0.12, 0, w * 0.23, Math.PI * 0.25, Math.PI * 1.75);
-    ctx.arc(w * 0.17, 0, w * 0.23, Math.PI * 1.25, Math.PI * 0.75, true);
+    ctx.moveTo(-outerX, -innerY); ctx.lineTo(-outerX, -outerY); ctx.lineTo(-innerX, -outerY);
+    ctx.moveTo(innerX, -outerY); ctx.lineTo(outerX, -outerY); ctx.lineTo(outerX, -innerY);
+    ctx.moveTo(outerX, innerY); ctx.lineTo(outerX, outerY); ctx.lineTo(innerX, outerY);
+    ctx.moveTo(-innerX, outerY); ctx.lineTo(-outerX, outerY); ctx.lineTo(-outerX, innerY);
     ctx.stroke();
-    ctx.fillStyle = "rgba(12,12,12,.9)";
-    ctx.beginPath();
-    ctx.arc(w * 0.025, 0, Math.max(1.2, w * 0.045), 0, Math.PI * 2);
-    ctx.fill();
     return;
   }
 
