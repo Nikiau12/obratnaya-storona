@@ -2,9 +2,9 @@ import "./styles.css";
 
 const projectLabelsReady = true;
 
-// A deliberately small typographic vocabulary replaces the unrelated found
-// objects. Every sign belongs to publishing: letters and fragments, punctuation,
-// printing marks, page furniture, and one mirrored word.
+// A deliberately small typographic vocabulary gives the motion a publishing
+// logic: letters and fragments, punctuation, printing marks, page furniture,
+// one mirrored word, and a single physical exception — the lemon.
 const objectSpecs = [
   { kind: "letter", text: "Ж", width: 0.64, height: 0.72, weight: 300, duration: 14.2 },
   { kind: "fragment", text: "Я", width: 0.58, height: 0.72, weight: 500, duration: 16.1 },
@@ -14,6 +14,7 @@ const objectSpecs = [
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
   { kind: "proof-insert", width: 0.48, height: 0.36, size: 0.72, duration: 17.8 },
   { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
+  { kind: "physical-object", asset: "lemon", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, duration: 18.3 },
   { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
   { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
 ];
@@ -100,6 +101,12 @@ root.innerHTML = `
 
 const canvas = document.querySelector(".scene");
 let ctx = canvas.getContext("2d", { alpha: false });
+const objectImages = {
+  lemon: Object.assign(new Image(), {
+    decoding: "async",
+    src: `${import.meta.env.BASE_URL}assets/object-lemon.webp`,
+  }),
+};
 const roomCanvas = document.createElement("canvas");
 const cachedRoomCtx = roomCanvas.getContext("2d", { alpha: false });
 const intro = document.querySelector(".intro");
@@ -503,9 +510,16 @@ function drawObject(state) {
 function drawTypographicSprite(item, w, h) {
   ctx.fillStyle = "rgba(12,12,12,.92)";
 
+  if (item.kind === "physical-object") {
+    const image = objectImages[item.asset];
+    if (image?.complete && image.naturalWidth) {
+      ctx.drawImage(image, -w * 0.68, -h * 0.68, w * 1.36, h * 1.36);
+    }
+    return;
+  }
+
   if (item.kind === "proof-insert") {
-    // The only colour event in the scene: a small handwritten insertion caret.
-    ctx.strokeStyle = "#c6322b";
+    ctx.strokeStyle = "rgba(12,12,12,.92)";
     ctx.lineWidth = Math.max(1.5, w * 0.055);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -544,6 +558,7 @@ function drawTypographicSprite(item, w, h) {
   if (item.kind === "fragment") {
     // The clipped edge makes this a piece of a letter rather than another
     // complete alphabet character.
+    ctx.fillStyle = "#c6322b";
     ctx.beginPath();
     ctx.rect(-w * 0.36, -h * 0.48, w * 0.42, h * 0.96);
     ctx.clip();
@@ -551,7 +566,10 @@ function drawTypographicSprite(item, w, h) {
     return;
   }
 
-  if (item.kind === "mirror-word") ctx.scale(-1, 1);
+  if (item.kind === "mirror-word") {
+    ctx.fillStyle = "#2453b8";
+    ctx.scale(-1, 1);
+  }
   ctx.fillText(item.text, 0, 0);
 }
 
