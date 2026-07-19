@@ -12,6 +12,7 @@ const objectSpecs = [
   { kind: "punctuation", text: "—", width: 0.72, height: 0.3, weight: 400, duration: 13.8 },
   { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
+  { kind: "proof-insert", width: 0.48, height: 0.36, size: 0.72, duration: 17.8 },
   { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
   { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
   { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
@@ -463,7 +464,7 @@ function getObjectState(item, time, m) {
   const y = groundY - altitude;
   const redshift = smoothstep(0.9, 0.997, observedFall);
   const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
-  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination";
+  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination" || item.kind === "proof-insert";
   const rotation = keepsBaseline
     ? Math.sin(time * 0.42 + item.index * 0.8) * 0.075
     : tumble * (item.rotationFactor ?? (item.kind === "fragment" ? 0.62 : 0.72));
@@ -501,6 +502,20 @@ function drawObject(state) {
 
 function drawTypographicSprite(item, w, h) {
   ctx.fillStyle = "rgba(12,12,12,.92)";
+
+  if (item.kind === "proof-insert") {
+    // The only colour event in the scene: a small handwritten insertion caret.
+    ctx.strokeStyle = "#c6322b";
+    ctx.lineWidth = Math.max(1.5, w * 0.055);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.29, h * 0.24);
+    ctx.lineTo(0, -h * 0.24);
+    ctx.lineTo(w * 0.29, h * 0.2);
+    ctx.stroke();
+    return;
+  }
 
   if (item.kind === "crop-marks") {
     // Four crop marks form an almost-abstract object while remaining a real
