@@ -4,7 +4,7 @@ const projectLabelsReady = true;
 
 // A deliberately small typographic vocabulary gives the motion a publishing
 // logic: letters and fragments, punctuation, printing marks, page furniture,
-// one mirrored word, and a single physical exception — the lemon.
+// one mirrored word, and a single physical exception — the stone.
 const objectSpecs = [
   { kind: "letter", text: "Ж", width: 0.64, height: 0.72, weight: 300, duration: 14.2 },
   { kind: "fragment", text: "Я", width: 0.58, height: 0.72, weight: 500, duration: 16.1 },
@@ -13,7 +13,7 @@ const objectSpecs = [
   { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
   { kind: "proof-insert", width: 0.48, height: 0.36, size: 0.72, duration: 17.8 },
-  { kind: "physical-object", asset: "lemon", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, duration: 18.3 },
+  { kind: "physical-object", asset: "stone", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, pathIndex: 8, duration: 18.3 },
   { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
   { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
 ];
@@ -85,7 +85,6 @@ root.innerHTML = `
   <main class="shell">
     <canvas class="scene" aria-hidden="true"></canvas>
     <section class="intro" aria-labelledby="page-title">
-      <p class="kicker">независимое медиа</p>
       <h1 id="page-title">Обратная сторона</h1>
       <p class="lede">Независимый издательский проект, констелляция книжных практик.</p>
     </section>
@@ -101,9 +100,9 @@ root.innerHTML = `
 const canvas = document.querySelector(".scene");
 let ctx = canvas.getContext("2d", { alpha: false });
 const objectImages = {
-  lemon: Object.assign(new Image(), {
+  stone: Object.assign(new Image(), {
     decoding: "async",
-    src: `${import.meta.env.BASE_URL}assets/object-lemon.webp`,
+    src: `${import.meta.env.BASE_URL}assets/object-stone.webp`,
   }),
 };
 const roomCanvas = document.createElement("canvas");
@@ -460,7 +459,7 @@ function getObjectState(item, time, m) {
   const horizonRadius = m.holeW * 0.71;
   const radius = horizonRadius + m.holeW * 1.18 * Math.exp(-5 * cycle * cycle);
   const orbitalPhase = 1 - Math.exp(-3.8 * cycle * cycle);
-  const angle = item.index * 1.62 + item.direction * orbitalPhase * Math.PI * 3.7;
+  const angle = (item.pathIndex ?? item.index) * 1.62 + item.direction * orbitalPhase * Math.PI * 3.7;
   // Every new cycle starts above the viewport, so objects enter the room from
   // the top instead of materialising halfway down a wall.
   const altitude = height * 0.76 * (1 - observedFall);

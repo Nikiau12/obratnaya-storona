@@ -80,14 +80,6 @@ a {
   text-shadow: 0 1px 20px rgba(251, 250, 247, 0.58);
 }
 
-.kicker {
-  margin: 0 0 0.7rem;
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 h1 {
   max-width: 9ch;
   margin: 0;
