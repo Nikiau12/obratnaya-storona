@@ -13,7 +13,6 @@ const objectSpecs = [
   { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
   { kind: "proof-insert", width: 0.48, height: 0.36, size: 0.72, duration: 17.8 },
-  { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
   { kind: "physical-object", asset: "lemon", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, duration: 18.3 },
   { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
   { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
@@ -527,25 +526,6 @@ function drawTypographicSprite(item, w, h) {
     ctx.moveTo(-w * 0.29, h * 0.24);
     ctx.lineTo(0, -h * 0.24);
     ctx.lineTo(w * 0.29, h * 0.2);
-    ctx.stroke();
-    return;
-  }
-
-  if (item.kind === "crop-marks") {
-    // Four crop marks form an almost-abstract object while remaining a real
-    // piece of printing vocabulary.
-    ctx.strokeStyle = "rgba(12,12,12,.9)";
-    ctx.lineWidth = Math.max(1, w * 0.026);
-    ctx.lineCap = "square";
-    const outerX = w * 0.38;
-    const outerY = h * 0.38;
-    const innerX = w * 0.19;
-    const innerY = h * 0.19;
-    ctx.beginPath();
-    ctx.moveTo(-outerX, -innerY); ctx.lineTo(-outerX, -outerY); ctx.lineTo(-innerX, -outerY);
-    ctx.moveTo(innerX, -outerY); ctx.lineTo(outerX, -outerY); ctx.lineTo(outerX, -innerY);
-    ctx.moveTo(outerX, innerY); ctx.lineTo(outerX, outerY); ctx.lineTo(innerX, outerY);
-    ctx.moveTo(-innerX, outerY); ctx.lineTo(-outerX, outerY); ctx.lineTo(-outerX, innerY);
     ctx.stroke();
     return;
   }
