@@ -1,7 +1,15 @@
+@font-face {
+  font-family: "Tilda Sans";
+  font-style: normal;
+  font-weight: 250 1000;
+  font-display: swap;
+  src: url("https://static.tildacdn.com/fonts/tildasans/TildaSans-VF.woff2") format("woff2-variations");
+}
+
 :root {
   color: #151515;
   background: #fbfaf7;
-  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Tilda Sans", "Helvetica Neue", Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -83,11 +91,10 @@ a {
 h1 {
   max-width: 9ch;
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.8rem, 7.2vw, 6.6rem);
-  font-weight: 400;
-  line-height: 0.86;
-  letter-spacing: 0;
+  font-weight: 300;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
 }
 
 .lede {
@@ -204,6 +211,7 @@ h1 {
   padding: 0.2rem 0;
   background: transparent;
   font-size: clamp(0.76rem, 1.1vw, 0.96rem);
+  font-weight: 400;
   line-height: 1.1;
   white-space: nowrap;
   text-shadow: 0 0 3px rgba(251, 250, 247, 0.98), 0 0 7px rgba(251, 250, 247, 0.92);
@@ -239,8 +247,8 @@ h1 {
 }
 
 .node-label.is-section .node-text {
-  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1rem, 1.55vw, 1.28rem);
+  font-weight: 500;
 }
 
 .node-label.is-active,
@@ -280,9 +288,10 @@ h1 {
 .info-title {
   display: block;
   margin-bottom: 0.45rem;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1.7rem, 3vw, 2.55rem);
+  font-weight: 500;
   line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .info-copy {

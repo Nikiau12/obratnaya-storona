@@ -1,35 +1,46 @@
 import "./styles.css";
 
 const projectLabelsReady = true;
-const projectDetailsReady = false;
 
+// A deliberately small typographic vocabulary replaces the unrelated found
+// objects. Every sign belongs to publishing: letters and fragments, punctuation,
+// printing marks, page furniture, and one mirrored word.
 const objectSpecs = [
-  { type: "nose", width: 0.72, height: 0.72, duration: 14.2 },
-  { type: "lemon", width: 0.64, height: 0.64, duration: 15.8 },
-  { type: "stone", width: 0.68, height: 0.68, duration: 16.9 },
-  { type: "propeller", width: 0.76, height: 0.76, duration: 13.6 },
-  { type: "glass", width: 0.66, height: 0.76, duration: 17.6 },
-  { type: "rook", width: 0.5, height: 0.74, duration: 18.4 },
-  { type: "lightning", width: 0.5, height: 0.82, duration: 15.1 },
+  { kind: "letter", text: "Ж", width: 0.64, height: 0.72, weight: 300, duration: 14.2 },
+  { kind: "fragment", text: "Я", width: 0.58, height: 0.72, weight: 500, duration: 16.1 },
+  { kind: "punctuation", text: "« »", width: 0.82, height: 0.46, weight: 300, size: 0.9, duration: 15.4 },
+  { kind: "punctuation", text: "—", width: 0.72, height: 0.3, weight: 400, duration: 13.8 },
+  { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
+  { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
+  { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
+  { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
+  { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
 ];
 
-const assetPath = (path) => `${import.meta.env.BASE_URL}${path}`;
-const assetUrls = {
-  nose: assetPath("assets/object-nose.webp"),
-  lemon: assetPath("assets/object-lemon.webp"),
-  stone: assetPath("assets/object-stone.webp"),
-  propeller: assetPath("assets/object-propeller.webp"),
-  glass: assetPath("assets/object-glass.webp?v=3"),
-  rook: assetPath("assets/object-rook.webp"),
-  lightning: assetPath("assets/object-lightning.webp?v=3"),
-};
-
 const nodes = [
-  { id: "signal", title: "Носорог", description: "", kind: "project", status: "live" },
-  { id: "flicker", title: "Teller Books", description: "", kind: "project", status: "live" },
+  {
+    id: "signal",
+    title: "Носорог",
+    description: "Литературный журнал и книжное издательство. «Носорог» публикует прозу, поэзию и философию, соединяя тексты и изображения по коллажному принципу, и развивает эту практику в книжных форматах.",
+    kind: "project",
+    status: "live",
+  },
+  {
+    id: "flicker",
+    title: "Teller Books",
+    description: "Книжная линейка Teller, которую мы создаём вместе с командой. В числе готовящихся книг — Dependent, Distracted, Bored Сусанны Паасонен и The Dark Forest Theory of the Internet Богны Кониор.",
+    kind: "project",
+    status: "live",
+  },
   { id: "residents", title: "онлайн-медиа Обратная сторона", description: "", kind: "project", status: "upcoming" },
   { id: "showcase", title: "книжный", description: "", kind: "project", status: "upcoming" },
-  { id: "word", title: "Носорог х Press mi", description: "", kind: "project", status: "live" },
+  {
+    id: "word",
+    title: "Носорог х Press mi",
+    description: "Издательская программа самоорганизованной институции современного искусства Press mi, которую мы помогаем развивать.",
+    kind: "project",
+    status: "live",
+  },
   { id: "day", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "archive", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "about", title: "", description: "", kind: "placeholder", status: "placeholder" },
@@ -81,7 +92,7 @@ root.innerHTML = `
       <svg class="constellation-points" aria-hidden="true"></svg>
       <svg class="node-lines" aria-hidden="true"></svg>
     </nav>
-    <aside class="info-panel" aria-live="polite"${projectDetailsReady ? "" : " hidden"}>
+    <aside class="info-panel" aria-live="polite" hidden>
       <span class="info-title"></span><span class="info-copy"></span>
     </aside>
   </main>`;
@@ -94,16 +105,10 @@ const intro = document.querySelector(".intro");
 const nodeLayer = document.querySelector(".node-layer");
 const constellationPoints = document.querySelector(".constellation-points");
 const nodeLines = document.querySelector(".node-lines");
+const infoPanel = document.querySelector(".info-panel");
 const infoTitle = document.querySelector(".info-title");
 const infoCopy = document.querySelector(".info-copy");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const images = Object.fromEntries(Object.entries(assetUrls).map(([key, url]) => {
-  const image = new Image();
-  image.decoding = "async";
-  image.src = url;
-  return [key, image];
-}));
-
 const pointer = { x: 0, y: 0, easedX: 0, easedY: 0 };
 const mobileGraph = { offsetX: 0, offsetY: 0, scale: 1, pointers: new Map(), pinchDistance: 0, pinchScale: 1, lastGestureAt: 0 };
 const particles = Array.from({ length: 74 }, (_, i) => ({
@@ -134,8 +139,7 @@ const nodeButtons = nodes.map((node, index) => {
   button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
   ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
     if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
-    if (isCompact() && projectDetailsReady) document.body.classList.add("has-mobile-selection");
-    setActiveNode(node.id);
+    setActiveNode(node.id, true);
   }));
   nodeLayer.append(button);
   return button;
@@ -459,11 +463,15 @@ function getObjectState(item, time, m) {
   const y = groundY - altitude;
   const redshift = smoothstep(0.9, 0.997, observedFall);
   const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
+  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination";
+  const rotation = keepsBaseline
+    ? Math.sin(time * 0.42 + item.index * 0.8) * 0.075
+    : tumble * (item.rotationFactor ?? (item.kind === "fragment" ? 0.62 : 0.72));
   return {
     item, cycle, redshift, behind: Math.sin(angle) < 0,
     x, y,
     groundX, groundY, angle,
-    rotation: item.type === "lightning" ? 0 : tumble,
+    rotation,
     scale: (0.8 - observedFall * 0.27) * (width < 640 ? 0.86 : 1),
     alpha: Math.exp(-4.8 * redshift * redshift),
   };
@@ -472,9 +480,10 @@ function getObjectState(item, time, m) {
 function drawObject(state) {
   const { item, x, y, groundX, groundY, rotation, scale, redshift, alpha } = state;
   if (alpha <= 0.01) return;
-  const base = Math.min(width, height) * 0.22;
-  const objectW = base * item.width * scale;
-  const objectH = base * item.height * scale;
+  const base = Math.min(width, height) * 0.175;
+  const itemScale = item.size || 1;
+  const objectW = base * item.width * scale * itemScale;
+  const objectH = base * item.height * scale * itemScale;
 
   ctx.save();
   ctx.globalAlpha = alpha * (0.1 + state.cycle * 0.9);
@@ -486,15 +495,49 @@ function drawObject(state) {
   ctx.translate(x, y);
   ctx.rotate(rotation);
   ctx.globalAlpha = alpha * (1 - redshift * 0.28);
-  drawSprite(item.type, objectW, objectH);
+  drawTypographicSprite(item, objectW, objectH);
   ctx.restore();
 }
 
-function drawSprite(type, w, h) {
-  const image = images[type];
-  if (image.complete && image.naturalWidth) {
-    ctx.drawImage(image, -w * 0.68, -h * 0.68, w * 1.36, h * 1.36);
+function drawTypographicSprite(item, w, h) {
+  ctx.fillStyle = "rgba(12,12,12,.92)";
+
+  if (item.kind === "crop-marks") {
+    // Four crop marks form an almost-abstract object while remaining a real
+    // piece of printing vocabulary.
+    ctx.strokeStyle = "rgba(12,12,12,.9)";
+    ctx.lineWidth = Math.max(1, w * 0.026);
+    ctx.lineCap = "square";
+    const outerX = w * 0.38;
+    const outerY = h * 0.38;
+    const innerX = w * 0.19;
+    const innerY = h * 0.19;
+    ctx.beginPath();
+    ctx.moveTo(-outerX, -innerY); ctx.lineTo(-outerX, -outerY); ctx.lineTo(-innerX, -outerY);
+    ctx.moveTo(innerX, -outerY); ctx.lineTo(outerX, -outerY); ctx.lineTo(outerX, -innerY);
+    ctx.moveTo(outerX, innerY); ctx.lineTo(outerX, outerY); ctx.lineTo(innerX, outerY);
+    ctx.moveTo(-innerX, outerY); ctx.lineTo(-outerX, outerY); ctx.lineTo(-outerX, innerY);
+    ctx.stroke();
+    return;
   }
+
+  const fontSize = item.kind === "mirror-word" ? h * 1.18 : h * 1.08;
+  ctx.font = `${item.weight || 400} ${fontSize}px "Tilda Sans", "Helvetica Neue", Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  if (item.kind === "fragment") {
+    // The clipped edge makes this a piece of a letter rather than another
+    // complete alphabet character.
+    ctx.beginPath();
+    ctx.rect(-w * 0.36, -h * 0.48, w * 0.42, h * 0.96);
+    ctx.clip();
+    ctx.fillText(item.text, -w * 0.02, 0);
+    return;
+  }
+
+  if (item.kind === "mirror-word") ctx.scale(-1, 1);
+  ctx.fillText(item.text, 0, 0);
 }
 
 function drawDust(time, m, behind) {
@@ -517,11 +560,14 @@ function ellipse(x, y, rx, ry, stroke = false) {
   stroke ? ctx.stroke() : ctx.fill();
 }
 
-function setActiveNode(id) {
+function setActiveNode(id, revealDetails = false) {
   activeNodeId = id;
   const node = nodes.find((item) => item.id === id);
+  const hasVisibleDetails = revealDetails && Boolean(node.description);
   infoTitle.textContent = node.title;
   infoCopy.textContent = node.description;
+  infoPanel.hidden = !hasVisibleDetails;
+  document.body.classList.toggle("has-mobile-selection", isCompact() && hasVisibleDetails);
   nodeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.id === id));
   layoutGraph();
 }
