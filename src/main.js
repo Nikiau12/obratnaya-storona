@@ -14,7 +14,6 @@ const objectSpecs = [
   { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
   { kind: "crop-marks", width: 0.68, height: 0.58, size: 0.62, rotationFactor: 0.26, duration: 15.9 },
   { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
-  { kind: "text-fragment", text: "обра—", width: 0.82, height: 0.25, weight: 400, size: 0.8, duration: 17.4 },
   { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
 ];
 
