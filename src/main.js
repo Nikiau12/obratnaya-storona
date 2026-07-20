@@ -150,10 +150,12 @@ const nodeButtons = nodes.map((node, index) => {
   button.setAttribute("aria-label", node.title ? `${node.title}${statusLabel}${linkLabel}` : `Проект ${index + 1}: название не указано`);
   button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
   ["pointerenter", "focus"].forEach((eventName) => button.addEventListener(eventName, () => {
+    twinklePlaceholder(button, node);
     setActiveNode(node.id, true);
   }));
   button.addEventListener("click", () => {
     if (Date.now() - mobileGraph.lastGestureAt < 260) return;
+    twinklePlaceholder(button, node);
     if (!node.url) {
       mobileLinkArmedId = null;
       setActiveNode(node.id, true);
@@ -170,6 +172,15 @@ const nodeButtons = nodes.map((node, index) => {
   nodeLayer.append(button);
   return button;
 });
+
+function twinklePlaceholder(button, node) {
+  if (reduceMotion || node.status !== "placeholder") return;
+  button.classList.remove("is-twinkling");
+  void button.offsetWidth;
+  button.classList.add("is-twinkling");
+  clearTimeout(button.twinkleTimer);
+  button.twinkleTimer = setTimeout(() => button.classList.remove("is-twinkling"), 900);
+}
 
 setActiveNode(activeNodeId);
 resize();
