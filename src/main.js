@@ -148,7 +148,7 @@ const nodeButtons = nodes.map((node, index) => {
   const statusLabel = node.status === "live" ? ", работает" : node.status === "upcoming" ? ", скоро" : "";
   const linkLabel = node.url ? ", открыть сайт" : "";
   button.setAttribute("aria-label", node.title ? `${node.title}${statusLabel}${linkLabel}` : `Проект ${index + 1}: название не указано`);
-  button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
+  button.innerHTML = `<span class="node-marker"><span class="node-aura" aria-hidden="true"></span><span class="node-dot"></span></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
   ["pointerenter", "focus"].forEach((eventName) => button.addEventListener(eventName, () => {
     twinklePlaceholder(button, node);
     setActiveNode(node.id, true);
@@ -179,7 +179,7 @@ function twinklePlaceholder(button, node) {
   void button.offsetWidth;
   button.classList.add("is-twinkling");
   clearTimeout(button.twinkleTimer);
-  button.twinkleTimer = setTimeout(() => button.classList.remove("is-twinkling"), 900);
+  button.twinkleTimer = setTimeout(() => button.classList.remove("is-twinkling"), 1450);
 }
 
 setActiveNode(activeNodeId);
