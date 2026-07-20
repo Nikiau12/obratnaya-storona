@@ -23,6 +23,7 @@ const nodes = [
     id: "signal",
     title: "Носорог",
     description: "Литературный журнал и книжное издательство. «Носорог» публикует прозу, поэзию и философию, соединяя тексты и изображения по коллажному принципу, и развивает эту практику в книжных форматах.",
+    url: "https://nosorog.media/",
     kind: "project",
     status: "live",
   },
@@ -30,6 +31,7 @@ const nodes = [
     id: "flicker",
     title: "Teller Books",
     description: "Книжная линейка Teller, которую мы создаём вместе с командой. В числе готовящихся книг — Dependent, Distracted, Bored Сусанны Паасонен и The Dark Forest Theory of the Internet Богны Кониор.",
+    url: "https://teller.media/blog/",
     kind: "project",
     status: "live",
   },
@@ -39,6 +41,7 @@ const nodes = [
     id: "word",
     title: "Носорог х Press mi",
     description: "Издательская программа самоорганизованной институции современного искусства Press mi, которую мы помогаем развивать.",
+    url: "https://occimi.com/samizdatoccimi",
     kind: "project",
     status: "live",
   },
@@ -130,6 +133,7 @@ let width = 1;
 let height = 1;
 let ratio = 1;
 let activeNodeId = "signal";
+let mobileLinkArmedId = null;
 let startTime = performance.now();
 let lastTick = startTime;
 let frameAccumulator = 0;
@@ -138,15 +142,31 @@ const targetFrameDuration = 1000 / 60;
 const nodeButtons = nodes.map((node, index) => {
   const button = document.createElement("button");
   button.className = `node-label is-${node.kind} is-${node.status}`;
+  if (node.url) button.classList.add("has-link");
   button.type = "button";
   button.dataset.id = node.id;
   const statusLabel = node.status === "live" ? ", работает" : node.status === "upcoming" ? ", скоро" : "";
-  button.setAttribute("aria-label", node.title ? `${node.title}${statusLabel}` : `Проект ${index + 1}: название не указано`);
+  const linkLabel = node.url ? ", открыть сайт" : "";
+  button.setAttribute("aria-label", node.title ? `${node.title}${statusLabel}${linkLabel}` : `Проект ${index + 1}: название не указано`);
   button.innerHTML = `<span class="node-dot"></span>${projectLabelsReady && node.title ? `<span class="node-text">${node.title}</span>` : ""}${node.status === "upcoming" ? '<span class="node-status" aria-hidden="true">скоро</span>' : ""}`;
-  ["pointerenter", "focus", "click"].forEach((eventName) => button.addEventListener(eventName, () => {
-    if (eventName === "click" && Date.now() - mobileGraph.lastGestureAt < 260) return;
+  ["pointerenter", "focus"].forEach((eventName) => button.addEventListener(eventName, () => {
     setActiveNode(node.id, true);
   }));
+  button.addEventListener("click", () => {
+    if (Date.now() - mobileGraph.lastGestureAt < 260) return;
+    if (!node.url) {
+      mobileLinkArmedId = null;
+      setActiveNode(node.id, true);
+      return;
+    }
+    if (isCompact() && mobileLinkArmedId !== node.id) {
+      mobileLinkArmedId = node.id;
+      setActiveNode(node.id, true);
+      return;
+    }
+    mobileLinkArmedId = null;
+    window.open(node.url, "_blank", "noopener,noreferrer");
+  });
   nodeLayer.append(button);
   return button;
 });

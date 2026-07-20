@@ -257,6 +257,14 @@ h1 {
   transform: translateX(0.08rem);
 }
 
+.node-label.has-link:hover .node-text,
+.node-label.has-link:focus-visible .node-text,
+.node-label.has-link.is-active .node-text {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.2em;
+}
+
 .node-label[data-id="signal"].is-active .node-text,
 .node-label[data-id="archive"].is-active .node-text,
 .node-label[data-id="signal"]:hover .node-text,
