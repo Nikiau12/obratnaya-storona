@@ -8,7 +8,7 @@ const objectSpecs = [
   { kind: "letter", text: "О", width: 0.68, height: 0.72, weight: 300, size: 0.92, pathIndex: 0, duration: 15.2 },
   { kind: "physical-object", asset: "stone", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, pathIndex: 2, duration: 18.3 },
   { kind: "cover-figure", asset: "cycloPerson", width: 0.58, height: 0.92, size: 1.05, rotationFactor: 0.18, pathIndex: 4, duration: 19.4 },
-  { kind: "letter", text: "Ϝ", width: 0.62, height: 0.76, weight: 300, size: 0.92, pathIndex: 7, duration: 16.8 },
+  { kind: "digamma", width: 0.58, height: 0.7, size: 0.68, pathIndex: 7, duration: 16.8 },
 ];
 
 const nodes = [
@@ -552,6 +552,23 @@ function drawTypographicSprite(item, w, h) {
     if (image?.complete && image.naturalWidth) {
       ctx.drawImage(image, -w * 0.68, -h * 0.68, w * 1.36, h * 1.36);
     }
+    return;
+  }
+
+  if (item.kind === "digamma") {
+    ctx.strokeStyle = "rgba(12,12,12,.9)";
+    ctx.lineWidth = Math.max(2, w * 0.11);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.13, -h * 0.43);
+    ctx.lineTo(w * 0.31, -h * 0.43);
+    ctx.moveTo(-w * 0.13, -h * 0.43);
+    ctx.lineTo(-w * 0.13, h * 0.23);
+    ctx.bezierCurveTo(-w * 0.13, h * 0.4, -w * 0.24, h * 0.5, -w * 0.36, h * 0.43);
+    ctx.moveTo(-w * 0.13, -h * 0.06);
+    ctx.lineTo(w * 0.23, -h * 0.06);
+    ctx.stroke();
     return;
   }
 
