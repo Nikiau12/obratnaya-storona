@@ -15,7 +15,7 @@ const nodes = [
   {
     id: "signal",
     title: "Носорог",
-    description: "«Носорог» — независимое издательство, выросшее из одноимённого литературного журнала. Мы работаем с разными прозаическими формами — от теоретического фикшена до эссеистики и рассказов, с поэзией и переводной литературой,",
+    description: "Независимое издательство, выросшее из одноимённого литературного журнала. Мы работаем с разными прозаическими формами — от теоретического фикшена до эссеистики и рассказов, с поэзией и переводной литературой,",
     emphasis: "с актуальностью и опытом прошедшего.",
     url: "https://nosorog.media/",
     kind: "project",
@@ -24,7 +24,7 @@ const nodes = [
   {
     id: "flicker",
     title: "Teller Books",
-    description: "Книжная линейка Teller, которую мы создаём вместе с командой. В числе готовящихся книг — Dependent, Distracted, Bored Сусанны Паасонен и The Dark Forest Theory of the Internet Богны Кониор.",
+    description: "Книжная линейка, которую мы создаём вместе с командой. В числе готовящихся книг — Dependent, Distracted, Bored Сусанны Паасонен и The Dark Forest Theory of the Internet Богны Кониор.",
     url: "https://teller.media/blog/",
     kind: "project",
     status: "live",
@@ -34,7 +34,7 @@ const nodes = [
   {
     id: "word",
     title: "Носорог х Press mi",
-    description: "«Носорог х Press mi» — совместная книжная серия artist-run пространства осси «ми» и издательства «Носорог», переводная литература по современному искусству от исследователей и теоретиков XXI века.",
+    description: "Совместная книжная серия artist-run пространства осси «ми» и издательства «Носорог», переводная литература по современному искусству от исследователей и теоретиков XXI века.",
     url: "https://occimi.com/samizdatoccimi",
     kind: "project",
     status: "live",
@@ -42,7 +42,13 @@ const nodes = [
   { id: "day", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "archive", title: "", description: "", kind: "placeholder", status: "placeholder" },
   { id: "about", title: "", description: "", kind: "placeholder", status: "placeholder" },
-  { id: "contact", title: "", description: "", kind: "placeholder", status: "placeholder" },
+  {
+    id: "contact",
+    title: "Издательское бюро «Обратная сторона»",
+    description: "Независимая команда, создающая печатные проекты на заказ — от идеи до готового издания.",
+    kind: "project",
+    status: "live",
+  },
 ];
 
 const edges = [
