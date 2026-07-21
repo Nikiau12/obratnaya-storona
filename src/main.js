@@ -15,7 +15,8 @@ const nodes = [
   {
     id: "signal",
     title: "Носорог",
-    description: "Литературный журнал и книжное издательство. «Носорог» публикует прозу, поэзию и философию, соединяя тексты и изображения по коллажному принципу, и развивает эту практику в книжных форматах.",
+    description: "«Носорог» — независимое издательство, выросшее из одноимённого литературного журнала. Мы работаем с разными прозаическими формами — от теоретического фикшена до эссеистики и рассказов, с поэзией и переводной литературой,",
+    emphasis: "с актуальностью и опытом прошедшего.",
     url: "https://nosorog.media/",
     kind: "project",
     status: "live",
@@ -615,7 +616,12 @@ function setActiveNode(id, revealDetails = false) {
   const node = nodes.find((item) => item.id === id);
   const hasVisibleDetails = revealDetails && Boolean(node.description);
   infoTitle.textContent = node.title;
-  infoCopy.textContent = node.description;
+  infoCopy.replaceChildren(document.createTextNode(node.description));
+  if (node.emphasis) {
+    const emphasis = document.createElement("em");
+    emphasis.textContent = node.emphasis;
+    infoCopy.append(document.createTextNode(" "), emphasis);
+  }
   infoPanel.hidden = !hasVisibleDetails;
   document.body.classList.toggle("has-mobile-selection", isCompact() && hasVisibleDetails);
   nodeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.id === id));
