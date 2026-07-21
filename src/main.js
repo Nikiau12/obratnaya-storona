@@ -9,7 +9,6 @@ const objectSpecs = [
   { kind: "physical-object", asset: "stone", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, pathIndex: 2, duration: 18.3 },
   { kind: "cover-figure", asset: "cycloPerson", width: 0.58, height: 0.92, size: 1.05, rotationFactor: 0.18, pathIndex: 4, duration: 19.4 },
   { kind: "digamma", width: 0.58, height: 0.7, size: 0.68, pathIndex: 7, duration: 16.8 },
-  { kind: "redacted-word", text: "Каморка", width: 1.45, height: 0.36, weight: 400, size: 0.92, pathIndex: 9, duration: 17.6 },
 ];
 
 const nodes = [
@@ -505,7 +504,7 @@ function getObjectState(item, time, m) {
   const y = groundY - altitude;
   const redshift = smoothstep(0.9, 0.997, observedFall);
   const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
-  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination" || item.kind === "proof-insert" || item.kind === "redacted-word";
+  const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination" || item.kind === "proof-insert";
   const rotation = item.kind === "cover-figure"
     ? 0
     : keepsBaseline
@@ -596,19 +595,6 @@ function drawTypographicSprite(item, w, h) {
   ctx.font = `${item.weight || 400} ${fontSize}px "Tilda Sans", "Helvetica Neue", Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  if (item.kind === "redacted-word") {
-    // A precise editorial blackout: only the initial letter remains visible,
-    // while the rest of the word is completely covered by a typographic rule.
-    ctx.fillText(item.text, 0, 0);
-    const textWidth = ctx.measureText(item.text).width;
-    const initialWidth = ctx.measureText(item.text[0]).width;
-    const barX = -textWidth * 0.5 + initialWidth * 0.88;
-    const barWidth = textWidth - initialWidth * 0.78;
-    const barHeight = fontSize * 0.86;
-    ctx.fillRect(barX, -barHeight * 0.5, barWidth, barHeight);
-    return;
-  }
 
   if (item.kind === "fragment") {
     // The clipped edge makes this a piece of a letter rather than another
