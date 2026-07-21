@@ -2,20 +2,13 @@ import "./styles.css";
 
 const projectLabelsReady = true;
 
-// A deliberately small typographic vocabulary gives the motion a publishing
-// logic: letters and fragments, punctuation, printing marks, page furniture,
-// one mirrored word, and a single physical exception — the stone.
+// The final vocabulary supplied by the client: two letters and two physical
+// objects. Keeping it this small makes every falling element intentional.
 const objectSpecs = [
-  { kind: "letter", text: "Ж", width: 0.64, height: 0.72, weight: 300, duration: 14.2 },
-  { kind: "fragment", text: "Я", width: 0.58, height: 0.72, weight: 500, duration: 16.1 },
-  { kind: "punctuation", text: "« »", width: 0.82, height: 0.46, weight: 300, size: 0.9, duration: 15.4 },
-  { kind: "punctuation", text: "—", width: 0.72, height: 0.3, weight: 400, duration: 13.8 },
-  { kind: "printing", text: "⁂", width: 0.58, height: 0.54, weight: 300, size: 0.8, rotationFactor: 0.42, duration: 18.1 },
-  { kind: "printing", text: "¶", width: 0.52, height: 0.7, weight: 400, size: 0.7, rotationFactor: 0.48, duration: 16.7 },
-  { kind: "proof-insert", width: 0.48, height: 0.36, size: 0.72, duration: 17.8 },
-  { kind: "physical-object", asset: "stone", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, pathIndex: 8, duration: 18.3 },
-  { kind: "pagination", text: "— 17 —", width: 0.9, height: 0.24, weight: 300, size: 0.78, duration: 19.1 },
-  { kind: "mirror-word", text: "оборот", width: 0.94, height: 0.25, weight: 400, size: 0.8, duration: 18.6 },
+  { kind: "letter", text: "О", width: 0.68, height: 0.72, weight: 300, size: 0.92, pathIndex: 0, duration: 15.2 },
+  { kind: "physical-object", asset: "stone", width: 0.62, height: 0.62, size: 0.88, rotationFactor: 0.38, pathIndex: 2, duration: 18.3 },
+  { kind: "cover-figure", asset: "cycloPerson", width: 0.58, height: 0.92, size: 1.05, rotationFactor: 0.18, pathIndex: 4, duration: 19.4 },
+  { kind: "letter", text: "Ϝ", width: 0.62, height: 0.76, weight: 300, size: 0.92, pathIndex: 7, duration: 16.8 },
 ];
 
 const nodes = [
@@ -106,6 +99,10 @@ const objectImages = {
   stone: Object.assign(new Image(), {
     decoding: "async",
     src: `${import.meta.env.BASE_URL}assets/object-stone.webp`,
+  }),
+  cycloPerson: Object.assign(new Image(), {
+    decoding: "async",
+    src: `${import.meta.env.BASE_URL}assets/object-cyclo-person.webp`,
   }),
 };
 const roomCanvas = document.createElement("canvas");
@@ -501,9 +498,11 @@ function getObjectState(item, time, m) {
   const redshift = smoothstep(0.9, 0.997, observedFall);
   const tumble = item.direction * (cycle * Math.PI * 4.2 + Math.sin(time * 0.7 + item.index) * 0.18);
   const keepsBaseline = item.kind === "mirror-word" || item.kind === "text-fragment" || item.kind === "pagination" || item.kind === "proof-insert";
-  const rotation = keepsBaseline
-    ? Math.sin(time * 0.42 + item.index * 0.8) * 0.075
-    : tumble * (item.rotationFactor ?? (item.kind === "fragment" ? 0.62 : 0.72));
+  const rotation = item.kind === "cover-figure"
+    ? 0
+    : keepsBaseline
+      ? Math.sin(time * 0.42 + item.index * 0.8) * 0.075
+      : tumble * (item.rotationFactor ?? (item.kind === "fragment" ? 0.62 : 0.72));
   return {
     item, cycle, redshift, behind: Math.sin(angle) < 0,
     x, y,
@@ -538,6 +537,14 @@ function drawObject(state) {
 
 function drawTypographicSprite(item, w, h) {
   ctx.fillStyle = "rgba(12,12,12,.92)";
+
+  if (item.kind === "cover-figure") {
+    const image = objectImages[item.asset];
+    if (image?.complete && image.naturalWidth) {
+      ctx.drawImage(image, -w * 0.56, -h * 0.56, w * 1.12, h * 1.12);
+    }
+    return;
+  }
 
   if (item.kind === "physical-object") {
     const image = objectImages[item.asset];
